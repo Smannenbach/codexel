@@ -75,6 +75,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all projects
+  app.get("/api/projects", async (req, res) => {
+    try {
+      const projects = await storage.getAllProjects();
+      res.json(projects);
+    } catch (error) {
+      console.error("Get projects error:", error);
+      res.status(500).json({ message: "Failed to get projects" });
+    }
+  });
+
   // Get project data
   app.get("/api/projects/:id", async (req, res) => {
     try {
