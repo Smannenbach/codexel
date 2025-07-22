@@ -1,0 +1,35 @@
+Before I kick off the research to deliver a 100X better Codexel prompt and plan for Replit, could you please confirm or clarify a few key points?
+
+Platform Experience: Should Codexel be entirely no-code/low-code, or also serve advanced developers?
+
+Core Features: Are there specific features from Replit, Cursor, or other platforms you want to keep, eliminate, or dramatically improve?
+
+AI Capabilities: Do you want one centralized AI agent, multiple agents (like a team), or modular AI tools (e.g., Codex, Claude, DALL·E, etc.)?
+
+Design System: Should the UI follow a specific design system (e.g., Material UI, Tailwind, custom theme)?
+
+Build Output: Should Codexel generate production-ready deployable code (e.g., via Vercel/Netlify integration) or just offer the frontend/backend separately?
+
+Technical Stack Preferences: Do you want to stick with the stack Kimi2 mentioned (Next.js + FastAPI + Supabase), or are you open to other suggestions?
+
+End User: Who is Codexel’s ideal customer — hobbyist, freelancer, agency, startup founder, or enterprise team?
+
+Once I have these details, I’ll create a full plan and Replit-ready spec with design mockups, tech stack, and prompt structure that outclasses Replit, Cursor, and everyone else.
+
+Let’s dominate this space 😎
+
+
+
+
+
+
+
+
+You said:
+1. It should be focused on no-code/low-code, but also have coding options for advanced developer.
+2. I hate how the agent or model stops coding on Replit and I have to tell it to keep going. I also don't like having to tell it over and over again to fix the same errors, to test everything before marking it as completed, and that I have to keep requesting an updated checklist on all deliverables. I also don't like how Repli raised their prices, so now it's too expensive.
+3. I want options for all of it. But with a focus on the options that get the site/app live the fastest and with the most quality!
+4. I don't know anything about those Design Systems, so you'll have to figure it out for me. What's the best?
+5. Yes it should. And we need our own deployment path built in (however that is accomplished) just like how Replit does it. It should be an All-In-One Solution.
+6. I want the best technical stack that won't break the bank. 
+7. Entrepreneurs who've had an app/website idea for a long time, but because they didn't know how to code, their idea was out of reach because of the cost of hiring a development team. This app will fix that problem instantly.

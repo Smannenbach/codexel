@@ -1,0 +1,57 @@
+Congratulations on the acquisition! Codexel.ai is a strong, brandable name that immediately signals “AI + code.”
+Here’s a concise 8-week roadmap you can use to turn the domain into a Replit/Cursor-class AI coding platform—while keeping costs low and leaning on the free or open-source stack we discussed.
+────────────────────────
+Week-by-Week Launch Plan
+────────────────────────
+Week 1 – Foundations
+• Spin up a repo (codexel-ai/platform) under MIT license.
+• Pick a stack: Next.js 14 (frontend) + FastAPI (backend) + PostgreSQL (via Supabase free tier).
+• Deploy a landing page on Vercel with e-mail capture and a public roadmap.
+Week 2 – Core IDE Shell
+• Embed Monaco Editor (VS Code’s engine) in the browser.
+• Add WebContainers (StackBlitz) or Docker-in-browser (CodeSandbox’s Sandpack) to give users an isolated runtime for Node, Python, etc.
+• Wire up file-tree, tabs, and basic terminal.
+Week 3 – AI Integration
+• Plug in Codeium’s free API for autocomplete and chat (it’s unlimited for individual users).
+• Add an optional “bring-your-own-key” toggle for OpenAI, Claude, or local Ollama models.
+• Implement streaming chat in the sidebar à la Cursor.
+Week 4 – Project & Template System
+• Let users pick “Next.js App”, “Flask API”, “React Native Expo”, etc.
+• Store templates as GitHub repos; clone via degit/tiged on serverless functions (Supabase Edge Functions or Vercel Functions).
+Week 5 – Collaboration & Git
+• Integrate Live Share via Yjs for real-time multiplayer editing.
+• Add one-click “Push to GitHub” using GitHub OAuth + isomorphic-git.
+Week 6 – Pricing & Auth
+• Supabase Auth for GitHub/Google logins.
+• Launch with a generous free tier (e.g., 100 runtime hours/mo).
+• Paid plans: $9/mo for 500 hours + priority GPU, $29/mo for teams (billing via Stripe).
+Week 7 – Polish & Security
+• Rate-limit AI endpoints (Upstash Redis).
+• Add end-to-end encryption toggle for sensitive repos.
+• Run a public bug-bounty on Huntr.dev.
+Week 8 – Soft Launch
+• Post on Hacker News, /r/webdev, and Product Hunt with lifetime 50 % discount code “EARLYBIRD”.
+• Collect analytics (PostHog free tier).
+• Iterate weekly based on user feedback.
+────────────────────────
+Cost-Saving Cheat Sheet
+────────────────────────
+• AI: Codeium (free), Ollama (local), or BYO OpenAI key.
+• Hosting: Vercel Hobby + Supabase free = $0 while < 500 MB DB.
+• Compute: WebContainers run 100 % client-side; fallback to Firecracker micro-VMs on fly.io at $1.94/GB-month.
+• CI/CD: GitHub Actions free minutes.
+• CDN: Cloudflare Pages (free).
+────────────────────────
+Open-Source Accelerators You Can Fork
+────────────────────────
+stackblitz/webcontainer-core – browser Node runtime.
+replit/riju – lightweight ephemeral containers.
+GitHub1s – instant browser VS Code + repo.
+cline/cline – autonomous agent you can embed in the chat panel.
+────────────────────────
+Next Steps Right Now
+────────────────────────
+Reserve social handles (@codexel_ai) and create a wait-list page.
+Set up the GitHub org and pin the public roadmap.
+DM me if you want a starter template repo scaffolded in the next 48 hrs.
+You’re in a great position—owning the brand and having a clear cost-conscious plan. Let’s ship v0.1!

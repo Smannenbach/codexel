@@ -1,0 +1,48 @@
+🚀 Building Codexel.ai – “Explain like I’m 15”
+(we’ll do everything in the browser; no fancy server needed for now)
+Step 0 – What we’re making today
+A simple, free version of Codexel.ai that anyone can visit, type code, and get AI help.
+We’ll use:
+• GitHub (to store your code)
+• GitHub Codespaces (a free computer in the cloud)
+• Vercel (to put your site on the internet)
+All of these are free for small projects.
+Step 1 – Make your free accounts (5 min)
+Go to github.com → Sign Up → pick username “codexel-ai”.
+Go to vercel.com → “Continue with GitHub” → same account.
+Step 2 – Copy a starter project (2 min)
+Open this link (in a new tab):
+https://github.com/stackblitz-labs/pkg.pr.new
+Click the green “Use this template” button.
+Name the repo “codexel-web” (keep it Public).
+Click “Create repository from template”.
+Step 3 – Open the project in a free cloud computer (1 min)
+On your new repo page, click the green “Code” button → “Codespaces” → “Create codespace on main”.
+A VS Code window opens in your browser. Wait ~30 s for it to finish loading.
+Step 4 – Add the AI helper (5 min)
+In the left sidebar, click the square “Extensions” icon.
+Search “codeium” → click “Install”.
+A pop-up appears → click “Sign in with GitHub” → allow.
+That’s it—Codeium is now your free AI copilot inside the editor.
+Step 5 – Customize the home page (10 min)
+In the file tree, open src/pages/index.astro (or index.tsx if template uses Next.js).
+Change the title text to:
+<h1>Codexel.ai – Your free AI coding workspace</h1>
+Save: Ctrl-S (or Cmd-S on Mac).
+Step 6 – Launch a preview (1 min)
+In the bottom terminal, type:
+npm run dev
+Click the blue “Open in Browser” popup, or open the link shown (something like https://localhost:3000).
+You should now see your new site running.
+Step 7 – Put it on the internet (2 min)
+Go back to the Codespaces tab.
+In the terminal, type:
+npx vercel --prod
+When asked, sign in with GitHub (same account).
+Accept all defaults (press Enter each time).
+Vercel will give you a link like https://codexel-web.vercel.app – that’s your live site!
+Step 8 – Share it (30 s)
+Copy the Vercel link and post it anywhere.
+Anyone can open the link, create an account (free), and start coding with the AI assistant you just set up.
+🎉 Done! You now have a working “Replit-like” site on your new Codexel.ai domain.
+Next weekend you can add logins, save buttons, and more languages—but for today you’re live and free.
