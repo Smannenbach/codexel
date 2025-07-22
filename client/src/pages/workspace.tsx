@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
+import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayoutNew';
 import { ChatPanel } from '@/components/workspace/ChatPanel';
 import { ProjectSidebar } from '@/components/workspace/ProjectSidebar';
 import { AgentStatus } from '@/components/workspace/AgentStatus';

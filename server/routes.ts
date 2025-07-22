@@ -8,18 +8,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, projectId, model } = req.body;
+      const { content, projectId, model } = req.body;
       
       // Create user message
       await storage.createMessage({
         projectId: projectId || 1,
         role: 'user',
-        content: message,
+        content: content,
         model: null,
       });
 
       // Generate AI response
-      const aiResponse = await aiService.generateResponse(message, model || 'gpt-4');
+      const aiResponse = await aiService.generateResponse(content, model || 'gpt-4');
 
       // Create AI response message
       const response = await storage.createMessage({
@@ -107,24 +107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Usage stats
+  // Usage stats (placeholder for now)
   app.get("/api/usage/:userId", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      const usage = await storage.getAiUsageByUser(userId);
-      
-      const totalTokens = usage.reduce((sum: number, record: any) => 
-        sum + (record.inputTokens || 0) + (record.outputTokens || 0), 0
-      );
-      
-      const totalCost = usage.reduce((sum: number, record: any) => 
-        sum + (record.cost || 0), 0
-      );
-
+      // TODO: Implement usage tracking
       res.json({
-        totalTokens,
-        totalCost,
-        requestCount: usage.length,
+        totalTokens: 0,
+        totalCost: 0,
+        requestCount: 0,
       });
     } catch (error) {
       console.error("Usage stats error:", error);

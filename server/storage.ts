@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, projects, agents, messages, checklistItems, projectAgents, usageTracking } from '@shared/schema';
+import { users, projects, agents, messages, checklistItems, projectAgents } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem } from '@shared/schema';
 
