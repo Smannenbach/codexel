@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayoutNew';
-import { ProjectSidebar } from '@/components/workspace/ProjectSidebar';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
+import { ProjectSidebar } from '@/components/workspace/ProjectSidebar';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
