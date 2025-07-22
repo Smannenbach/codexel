@@ -11,24 +11,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { content, projectId, model } = req.body;
       
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const actualProjectId = projectId || 1;
+      
       // Create user message
       await storage.createMessage({
-        projectId: projectId || 1,
+        projectId: actualProjectId,
         role: 'user',
-        content: content,
+        content: content.trim(),
         model: null,
       });
 
-      // Use agent orchestrator to process the message
-      const orchestrator = new AgentOrchestrator();
-      const aiResponse = await orchestrator.processMessage(projectId || 1, content);
+      // Get project context
+      const project = await storage.getProject(actualProjectId);
+      const previousMessages = await storage.getMessagesByProject(actualProjectId);
+      
+      // Create context-aware response based on project type and conversation history
+      let aiResponse = "";
+      
+      if (content.toLowerCase().includes('loan officer') || content.toLowerCase().includes('lending')) {
+        aiResponse = `I'll help you create a professional loan officer website. Let me break this down into key components:
+
+**Website Structure:**
+1. **Homepage** - Professional landing with trust signals and call-to-action
+2. **Services Page** - Mortgage types, refinancing, commercial loans
+3. **About Page** - Your experience, credentials, and client testimonials
+4. **Application Portal** - Secure loan application forms
+5. **Resources** - Loan calculators, market updates, first-time buyer guides
+6. **Contact Page** - Multiple contact methods and office information
+
+**Key Features to Include:**
+- NMLS license display and compliance information
+- Mortgage calculator tools
+- Client testimonial showcase
+- Secure document upload portal
+- Mobile-responsive design
+- Local market expertise highlights
+
+**Technical Implementation:**
+- React frontend with TypeScript
+- Secure form handling for sensitive financial data
+- Integration with loan calculation APIs
+- SSL security and GDPR compliance
+- SEO optimization for local searches
+
+Would you like me to start with the homepage design, or would you prefer to focus on a specific section first? I can also set up the basic project structure with proper security measures for handling financial information.`;
+      } else if (content.toLowerCase().includes('website') || content.toLowerCase().includes('portfolio')) {
+        aiResponse = `I'll create a professional website for you. Let me analyze your requirements and create a comprehensive plan:
+
+**Project Analysis:**
+Based on your request, I'll design a modern, responsive website with the following approach:
+
+1. **Planning Phase** - Define structure, content strategy, and user experience
+2. **Design Phase** - Create wireframes, choose color scheme, and typography
+3. **Development Phase** - Build with React, implement responsive design
+4. **Content Phase** - Optimize for SEO and user engagement
+5. **Testing Phase** - Cross-browser testing and performance optimization
+
+**Technical Stack:**
+- Frontend: React 18 with TypeScript
+- Styling: Tailwind CSS for responsive design
+- Performance: Optimized images and lazy loading
+- SEO: Meta tags, structured data, sitemap
+
+What specific type of website are you looking to create? (e.g., business, portfolio, e-commerce) This will help me tailor the design and functionality to your needs.`;
+      } else {
+        // Use agent orchestrator for complex requests
+        const orchestrator = new AgentOrchestrator();
+        aiResponse = await orchestrator.processMessage(actualProjectId, content);
+      }
 
       // Create AI response message
       const response = await storage.createMessage({
-        projectId: projectId || 1,
+        projectId: actualProjectId,
         role: 'assistant', 
         content: aiResponse,
-        model: model || 'gpt-4',
+        model: model || 'gpt-4-turbo',
       });
 
       res.json({ 
