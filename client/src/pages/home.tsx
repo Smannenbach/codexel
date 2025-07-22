@@ -136,10 +136,10 @@ export default function Home() {
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/templates')}
               >
-                <Globe className="w-4 h-4 mr-2" />
-                View Demo
+                <Palette className="w-4 h-4 mr-2" />
+                Browse Templates
               </Button>
             </div>
           </div>

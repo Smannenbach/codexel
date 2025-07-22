@@ -1,177 +1,147 @@
-import { generateWithGPT4, analyzeRequirements, generateCodeWithGPT4 } from './openai';
-import { generateWithClaude, planArchitecture, designUIComponents, generateCodeWithClaude } from './anthropic';
-import { generateWithGemini, designUserInterface, generateCodeWithGemini } from './gemini';
-import { InsertMessage, InsertAiUsage } from '@shared/schema';
+import { AI_MODELS } from '@/lib/ai-models';
+import { storage } from '../storage';
+import type { Project, Message } from '@shared/schema';
 
-export type AIModel = 'gpt-4' | 'gpt-4-turbo' | 'claude-3.5-sonnet' | 'gemini-2.5-pro' | 'moonshot-kimi' | 'qwen-2.5-max';
-
-export interface AIResponse {
+interface AIResponse {
   content: string;
-  model: AIModel;
-  tokensUsed: number;
-  cost: number;
+  model: string;
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    cost: number;
+  };
 }
 
-export interface AgentTask {
-  id: string;
-  type: 'planning' | 'architecture' | 'design' | 'frontend' | 'backend' | 'testing';
-  description: string;
-  prompt: string;
-  priority: 'high' | 'medium' | 'low';
-  dependencies: string[];
-}
-
-class AIOrchestrator {
-  private modelCosts: Record<AIModel, { input: number; output: number }> = {
-    'gpt-4': { input: 0.03, output: 0.06 },
-    'gpt-4-turbo': { input: 0.01, output: 0.03 },
-    'claude-3.5-sonnet': { input: 0.003, output: 0.015 },
-    'gemini-2.5-pro': { input: 0.00125, output: 0.005 },
-    'moonshot-kimi': { input: 0.0015, output: 0.002 },
-    'qwen-2.5-max': { input: 0.0002, output: 0.0002 }
+export class AgentOrchestrator {
+  private models = {
+    'gpt-4': { endpoint: process.env.OPENAI_API_KEY, provider: 'openai' },
+    'gpt-4-turbo': { endpoint: process.env.OPENAI_API_KEY, provider: 'openai' },
+    'claude-3.5-sonnet': { endpoint: process.env.ANTHROPIC_API_KEY, provider: 'anthropic' },
+    'gemini-ultra': { endpoint: process.env.GEMINI_API_KEY, provider: 'google' },
+    'grok-2': { endpoint: process.env.XAI_API_KEY, provider: 'xai' },
+    'moonshot-kimi': { endpoint: process.env.MOONSHOT_API_KEY, provider: 'moonshot' },
+    'qwen-2.5-max': { endpoint: process.env.QWEN_API_KEY, provider: 'alibaba' },
+    'deepseek-v3': { endpoint: process.env.DEEPSEEK_API_KEY, provider: 'deepseek' }
   };
 
-  async processMessage(content: string, model: AIModel): Promise<AIResponse> {
-    let response: string;
-    let tokensUsed = 0;
-
-    try {
-      switch (model) {
-        case 'gpt-4':
-        case 'gpt-4-turbo':
-          response = await generateWithGPT4(content);
-          tokensUsed = this.estimateTokens(content + response);
-          break;
-        
-        case 'claude-3.5-sonnet':
-          response = await generateWithClaude(content);
-          tokensUsed = this.estimateTokens(content + response);
-          break;
-        
-        case 'gemini-2.5-pro':
-          response = await generateWithGemini(content);
-          tokensUsed = this.estimateTokens(content + response);
-          break;
-        
-        default:
-          throw new Error(`Model ${model} not implemented yet`);
-      }
-
-      const cost = this.calculateCost(model, tokensUsed);
-
-      return {
-        content: response,
-        model,
-        tokensUsed,
-        cost
-      };
-    } catch (error) {
-      throw new Error(`AI processing failed: ${(error as Error).message}`);
+  async processMessage(projectId: number, content: string): Promise<string> {
+    // Get project to determine model preference
+    const project = await storage.getProject(projectId);
+    if (!project) {
+      throw new Error('Project not found');
     }
-  }
 
-  async orchestrateProject(userInput: string): Promise<{
-    requirements: any;
-    architecture: any;
-    uiDesign: any;
-    tasks: AgentTask[];
-  }> {
-    try {
-      // Step 1: Analyze requirements with GPT-4 (best for planning)
-      const requirements = await analyzeRequirements(userInput);
-      
-      // Step 2: Plan architecture with Claude (excellent for technical planning)
-      const architecture = await planArchitecture(userInput);
-      
-      // Step 3: Design UI with Gemini (great for multimodal design)
-      const uiDesign = await designUserInterface(userInput);
-      
-      // Step 4: Generate task queue
-      const tasks = this.generateTaskQueue(requirements, architecture, uiDesign);
-      
-      return {
-        requirements,
-        architecture,
-        uiDesign,
-        tasks
-      };
-    } catch (error) {
-      throw new Error(`Project orchestration failed: ${(error as Error).message}`);
-    }
-  }
-
-  private generateTaskQueue(requirements: any, architecture: any, uiDesign: any): AgentTask[] {
-    const tasks: AgentTask[] = [
-      {
-        id: 'planning-1',
-        type: 'planning',
-        description: 'Create project roadmap and timeline',
-        prompt: `Based on these requirements: ${JSON.stringify(requirements)}, create a detailed project plan.`,
-        priority: 'high',
-        dependencies: []
-      },
-      {
-        id: 'architecture-1',
-        type: 'architecture',
-        description: 'Set up project structure and database schema',
-        prompt: `Implement this architecture: ${JSON.stringify(architecture)}`,
-        priority: 'high',
-        dependencies: ['planning-1']
-      },
-      {
-        id: 'design-1',
-        type: 'design',
-        description: 'Create component library and design system',
-        prompt: `Implement this UI design: ${JSON.stringify(uiDesign)}`,
-        priority: 'medium',
-        dependencies: ['planning-1']
-      },
-      {
-        id: 'frontend-1',
-        type: 'frontend',
-        description: 'Build core frontend components',
-        prompt: `Build React components based on the design system`,
-        priority: 'medium',
-        dependencies: ['design-1', 'architecture-1']
-      },
-      {
-        id: 'backend-1',
-        type: 'backend',
-        description: 'Implement API endpoints and business logic',
-        prompt: `Create backend APIs for ${requirements.projectType}`,
-        priority: 'medium',
-        dependencies: ['architecture-1']
-      }
-    ];
-
-    return tasks;
-  }
-
-  private estimateTokens(text: string): number {
-    // Rough estimation: 1 token ≈ 4 characters
-    return Math.ceil(text.length / 4);
-  }
-
-  private calculateCost(model: AIModel, tokens: number): number {
-    const inputTokens = tokens * 0.3; // Assume 30% input, 70% output
-    const outputTokens = tokens * 0.7;
+    const config = project.config as any;
+    const model = config?.primaryModel || 'gpt-4-turbo';
     
-    const costs = this.modelCosts[model];
-    return (inputTokens * costs.input + outputTokens * costs.output) / 1000;
+    // Get recent messages for context
+    const messages = await storage.getMessagesByProject(projectId);
+    const recentMessages = messages.slice(-10); // Last 10 messages for context
+
+    // Analyze intent and select appropriate agent
+    const intent = this.analyzeIntent(content);
+    const agent = await this.selectAgent(projectId, intent);
+
+    // Process with selected model
+    const response = await this.callAIModel(model, content, recentMessages, agent);
+
+    // Track usage
+    await this.trackUsage(project.userId!, projectId, response);
+
+    // Update agent status
+    if (agent) {
+      await this.updateAgentStatus(agent.id, 'working');
+    }
+
+    return response.content;
   }
 
-  getOptimalModel(taskType: AgentTask['type']): AIModel {
-    const modelMapping: Record<AgentTask['type'], AIModel> = {
-      'planning': 'gpt-4-turbo',
-      'architecture': 'claude-3.5-sonnet',
-      'design': 'gemini-2.5-pro',
-      'frontend': 'moonshot-kimi',
-      'backend': 'claude-3.5-sonnet',
-      'testing': 'qwen-2.5-max'
+  private analyzeIntent(content: string): string {
+    const intents = {
+      planning: ['plan', 'design', 'architecture', 'structure', 'requirement'],
+      frontend: ['ui', 'interface', 'component', 'page', 'style', 'css'],
+      backend: ['api', 'database', 'server', 'endpoint', 'auth'],
+      testing: ['test', 'bug', 'error', 'debug', 'fix'],
+      deployment: ['deploy', 'launch', 'production', 'hosting']
     };
 
-    return modelMapping[taskType] || 'gpt-4';
+    for (const [intent, keywords] of Object.entries(intents)) {
+      if (keywords.some(keyword => content.toLowerCase().includes(keyword))) {
+        return intent;
+      }
+    }
+
+    return 'general';
+  }
+
+  private async selectAgent(projectId: number, intent: string) {
+    const agents = await storage.getAgentsByProject(projectId);
+    
+    // Map intent to agent role
+    const roleMap: Record<string, string> = {
+      planning: 'planner',
+      frontend: 'frontend',
+      backend: 'backend',
+      testing: 'tester',
+      deployment: 'architect'
+    };
+
+    const targetRole = roleMap[intent] || 'architect';
+    return agents.find(agent => agent.role === targetRole) || agents[0];
+  }
+
+  private async callAIModel(
+    modelId: string, 
+    content: string, 
+    context: Message[],
+    agent: any
+  ): Promise<AIResponse> {
+    // Simulate AI response for now
+    // In production, this would make actual API calls to the respective AI providers
+    
+    const systemPrompt = agent ? 
+      `You are a ${agent.role} specialist AI agent named ${agent.name}. ${agent.description}` :
+      'You are a helpful AI assistant for software development.';
+
+    const contextMessages = context.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    // Simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Generate mock response based on intent
+    const responses = {
+      planning: "I'll help you plan the architecture. Let me analyze your requirements and create a comprehensive project structure.",
+      frontend: "I'll create the UI components you need. Let me design an intuitive and responsive interface.",
+      backend: "I'll set up the backend infrastructure. Let me create the API endpoints and database schema.",
+      testing: "I'll help debug and test your application. Let me identify and fix any issues.",
+      deployment: "I'll prepare your application for deployment. Let me configure the production environment."
+    };
+
+    const intent = this.analyzeIntent(content);
+    const responseContent = responses[intent as keyof typeof responses] || 
+      "I'll help you with that. Let me analyze your request and provide a solution.";
+
+    return {
+      content: responseContent,
+      model: modelId,
+      usage: {
+        inputTokens: content.length / 4, // Rough estimate
+        outputTokens: responseContent.length / 4,
+        cost: 0.001 // Mock cost
+      }
+    };
+  }
+
+  private async trackUsage(userId: number, projectId: number, response: AIResponse) {
+    // In production, this would track actual usage metrics
+    console.log(`Usage tracked: User ${userId}, Project ${projectId}, Model ${response.model}, Cost $${response.usage.cost}`);
+  }
+
+  private async updateAgentStatus(agentId: number, status: string) {
+    // Update agent status in storage
+    console.log(`Agent ${agentId} status updated to: ${status}`);
   }
 }
-
-export const aiOrchestrator = new AIOrchestrator();

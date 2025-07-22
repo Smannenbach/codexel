@@ -66,9 +66,11 @@ export const messages = pgTable("messages", {
 export const checklistItems = pgTable("checklist_items", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
-  agentId: integer("agent_id").notNull(),
+  agentId: integer("agent_id"),
   title: text("title").notNull(),
   description: text("description"),
+  category: text("category"),
+  assignedAgent: text("assigned_agent"),
   status: text("status").notNull().default("pending"), // pending, in-progress, completed
   priority: text("priority").notNull().default("medium"), // low, medium, high
   order: integer("order").notNull().default(0),
@@ -126,6 +128,8 @@ export const insertChecklistItemSchema = createInsertSchema(checklistItems).pick
   agentId: true,
   title: true,
   description: true,
+  category: true,
+  assignedAgent: true,
   priority: true,
   order: true,
 });
@@ -157,3 +161,20 @@ export type InsertChecklistItem = z.infer<typeof insertChecklistItemSchema>;
 
 export type AiUsage = typeof aiUsage.$inferSelect;
 export type InsertAiUsage = z.infer<typeof insertAiUsageSchema>;
+
+// Deployments table
+export const deployments = pgTable("deployments", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  environment: varchar("environment", { length: 50 }).notNull().default('production'),
+  status: varchar("status", { length: 50 }).notNull().default('pending'),
+  url: varchar("url", { length: 255 }),
+  logs: text("logs"),
+  deployedAt: timestamp("deployed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Deployment = typeof deployments.$inferSelect;
+export type InsertDeployment = typeof deployments.$inferInsert;

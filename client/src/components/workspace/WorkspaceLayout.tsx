@@ -1,193 +1,195 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { NavigationBar } from './NavigationBar';
-import { Sidebar } from './Sidebar';
-import { ConversationPanel } from './ConversationPanel';
-import { PreviewPanel } from './PreviewPanel';
-import { useWorkspace } from '@/hooks/useWorkspace';
-import { useChat } from '@/hooks/useChat';
-import { Agent, ChecklistItem } from '@/types/workspace';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChatPanel } from './ChatPanel';
+import { AgentStatus } from './AgentStatus';
+import { ChecklistPanel } from './ChecklistPanel';
+import { DeployPanel } from './DeployPanel';
+import { ProgressTracker } from './ProgressTracker';
+import { SettingsPanel } from './SettingsPanel';
+import { CostTracker } from './CostTracker';
+import { QuickActions } from './QuickActions';
+import { ModelSelector } from './ModelSelector';
+import { 
+  MessageSquare, 
+  Users, 
+  CheckSquare,
+  Rocket,
+  TrendingUp,
+  Settings,
+  DollarSign,
+  Zap
+} from 'lucide-react';
+import type { Project, Agent, Message, ChecklistItem } from '@shared/schema';
 
-// Mock data - in a real app this would come from your API
-const MOCK_AGENTS: Agent[] = [
-  {
-    id: '1',
-    name: 'Project Manager',
-    role: 'Planning & Coordination',
-    description: 'Creating master checklist and coordinating development phases',
-    status: 'active',
-    model: 'GPT-4 • Turbo',
-    color: 'purple',
-    icon: '👤'
-  },
-  {
-    id: '2',
-    name: 'Solution Architect',
-    role: 'System Design',
-    description: 'Designing scalable microservices architecture',
-    status: 'working',
-    model: 'Gemini Ultra',
-    color: 'blue',
-    icon: '🏗️'
-  },
-  {
-    id: '3',
-    name: 'UX/UI Designer',
-    role: 'Design & Branding',
-    description: 'Creating coffee-focused brand identity and layouts',
-    status: 'working',
-    model: 'Claude 3.5',
-    color: 'pink',
-    icon: '🎨'
-  },
-  {
-    id: '4',
-    name: 'Frontend Dev',
-    role: 'UI Development',
-    description: 'Building responsive React components',
-    status: 'idle',
-    model: 'Kimi K2',
-    color: 'green',
-    icon: '💻'
-  },
-  {
-    id: '5',
-    name: 'Backend Dev',
-    role: 'API Development',
-    description: 'Setting up FastAPI with PostgreSQL database',
-    status: 'idle',
-    model: 'GPT-4 Turbo',
-    color: 'orange',
-    icon: '⚙️'
-  },
-  {
-    id: '6',
-    name: 'QA Testing',
-    role: 'Quality Assurance',
-    description: 'Waiting for components to test',
-    status: 'idle',
-    model: 'Qwen 2.5 Max',
-    color: 'red',
-    icon: '🧪'
-  }
-];
+interface WorkspaceLayoutProps {
+  project: Project;
+  agents: Agent[];
+  messages: Message[];
+  checklist: ChecklistItem[];
+  onSendMessage: (content: string) => void;
+  onToggleChecklistItem?: (itemId: number) => void;
+}
 
-const MOCK_CHECKLIST: ChecklistItem[] = [
-  {
-    id: '1',
-    title: 'Project Manager - Creating comprehensive development plan',
-    description: 'Setting up project structure and timeline',
-    status: 'completed',
-    agentId: '1',
-    priority: 'high'
-  },
-  {
-    id: '2',
-    title: 'Solution Architect - Designing scalable microservices architecture',
-    description: 'Creating system architecture and API design',
-    status: 'completed',
-    agentId: '2',
-    priority: 'high'
-  },
-  {
-    id: '3',
-    title: 'UX/UI Designer - Creating coffee-focused brand identity and layouts',
-    description: 'Designing user interface and brand elements',
-    status: 'in-progress',
-    agentId: '3',
-    priority: 'medium'
-  },
-  {
-    id: '4',
-    title: 'Frontend Developer - Building responsive React components',
-    description: 'Implementing user interface components',
-    status: 'pending',
-    agentId: '4',
-    priority: 'medium'
-  }
-];
+export function WorkspaceLayout({
+  project,
+  agents,
+  messages,
+  checklist,
+  onSendMessage,
+  onToggleChecklistItem
+}: WorkspaceLayoutProps) {
+  const [leftTab, setLeftTab] = useState('chat');
+  const [rightTab, setRightTab] = useState('agents');
+  const [selectedModel, setSelectedModel] = useState('gpt-4-turbo');
 
-export function WorkspaceLayout() {
-  const { layout, applyPreset, resizeSidebar } = useWorkspace();
-  const { messages, selectedModel, setSelectedModel, sendMessage, isLoading } = useChat();
-  const [progress, setProgress] = useState(32);
-  const [cost, setCost] = useState(1.47);
+  const handleQuickAction = (prompt: string) => {
+    onSendMessage(prompt);
+    setLeftTab('chat');
+  };
 
-  // Simulate progress updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => Math.min(prev + Math.random() * 2, 100));
-      setCost(prev => prev + Math.random() * 0.1);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Mock cost data - in production, this would come from actual usage tracking
+  const costData = {
+    totalCost: 3.45,
+    budget: 25,
+    modelCosts: [
+      { model: 'GPT-4 Turbo', cost: 2.10 },
+      { model: 'Claude 3.5', cost: 0.85 },
+      { model: 'Gemini Ultra', cost: 0.50 }
+    ],
+    dailyCosts: [
+      { date: '2025-01-20', cost: 1.20 },
+      { date: '2025-01-21', cost: 1.05 },
+      { date: '2025-01-22', cost: 1.20 }
+    ]
+  };
 
   return (
-    <div className="h-screen workspace-bg flex flex-col">
-      <NavigationBar
-        selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
-        onPresetChange={applyPreset}
-        activePreset={layout.preset}
-        cost={cost}
-        maxCost={25}
-      />
-      
-      <div className="flex-1 flex overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          {/* Sidebar */}
-          {layout.sidebarWidth > 0 && (
-            <>
-              <ResizablePanel 
-                defaultSize={25} 
-                minSize={20} 
-                maxSize={40}
-                className="flex"
-              >
-                <Sidebar
-                  agents={MOCK_AGENTS}
-                  checklist={MOCK_CHECKLIST}
-                  progress={progress}
-                  width={280}
-                />
-              </ResizablePanel>
-              <ResizableHandle className="resize-handle" />
-            </>
-          )}
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      {/* Left Panel - Main Content */}
+      <ResizablePanel defaultSize={60} minSize={40}>
+        <Tabs value={leftTab} onValueChange={setLeftTab} className="h-full flex flex-col">
+          <div className="border-b bg-background">
+            <TabsList className="w-full justify-start h-12 p-0 bg-transparent">
+              <TabsTrigger value="chat" className="data-[state=active]:bg-muted rounded-none h-12 px-4">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                AI Chat
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="data-[state=active]:bg-muted rounded-none h-12 px-4">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Progress
+              </TabsTrigger>
+              <TabsTrigger value="cost" className="data-[state=active]:bg-muted rounded-none h-12 px-4">
+                <DollarSign className="w-4 h-4 mr-2" />
+                Cost
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-muted rounded-none h-12 px-4">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Conversation Panel */}
-          {layout.conversationWidth > 0 && (
-            <>
-              <ResizablePanel 
-                defaultSize={40} 
-                minSize={30}
-                className="flex"
-              >
-                <ConversationPanel
-                  messages={messages}
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                  onSendMessage={sendMessage}
-                  isLoading={isLoading}
+          <TabsContent value="chat" className="flex-1 m-0">
+            <div className="h-full flex flex-col">
+              {messages.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center p-8">
+                  <div className="w-full max-w-2xl">
+                    <div className="text-center mb-8">
+                      <h3 className="text-2xl font-semibold mb-2">
+                        What would you like to build today?
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Choose a quick action or describe your project idea
+                      </p>
+                    </div>
+                    <QuickActions onSelectAction={handleQuickAction} />
+                  </div>
+                </div>
+              ) : (
+                <ChatPanel 
+                  messages={messages} 
+                  onSendMessage={onSendMessage}
+                  isGenerating={agents.some(a => a.status === 'working')}
                 />
-              </ResizablePanel>
-              {layout.previewWidth > 0 && <ResizableHandle className="resize-handle" />}
-            </>
-          )}
+              )}
+            </div>
+          </TabsContent>
 
-          {/* Preview Panel */}
-          {layout.previewWidth > 0 && (
-            <ResizablePanel 
-              defaultSize={35} 
-              minSize={30}
-              className="flex"
-            >
-              <PreviewPanel />
-            </ResizablePanel>
-          )}
-        </ResizablePanelGroup>
-      </div>
-    </div>
+          <TabsContent value="progress" className="flex-1 m-0 overflow-auto">
+            <ProgressTracker 
+              projectProgress={project.progress || 0}
+              checklist={checklist}
+              agents={agents}
+            />
+          </TabsContent>
+
+          <TabsContent value="cost" className="flex-1 m-0 overflow-auto">
+            <div className="p-6">
+              <CostTracker {...costData} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="flex-1 m-0 overflow-auto">
+            <SettingsPanel 
+              projectId={project.id}
+              projectName={project.name}
+              onModelChange={setSelectedModel}
+            />
+          </TabsContent>
+        </Tabs>
+      </ResizablePanel>
+
+      <ResizableHandle />
+
+      {/* Right Panel - Support Content */}
+      <ResizablePanel defaultSize={40} minSize={25} maxSize={50}>
+        <Tabs value={rightTab} onValueChange={setRightTab} className="h-full flex flex-col">
+          <div className="border-b bg-background">
+            <TabsList className="w-full h-12 p-0 bg-transparent">
+              <TabsTrigger value="agents" className="flex-1 data-[state=active]:bg-muted rounded-none h-12">
+                <Users className="w-4 h-4 mr-2" />
+                Agents
+              </TabsTrigger>
+              <TabsTrigger value="checklist" className="flex-1 data-[state=active]:bg-muted rounded-none h-12">
+                <CheckSquare className="w-4 h-4 mr-2" />
+                Checklist
+              </TabsTrigger>
+              <TabsTrigger value="deploy" className="flex-1 data-[state=active]:bg-muted rounded-none h-12">
+                <Rocket className="w-4 h-4 mr-2" />
+                Deploy
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="agents" className="flex-1 m-0">
+            <div className="p-6 space-y-6">
+              <ModelSelector 
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                showDetails={true}
+              />
+              <AgentStatus agents={agents} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="checklist" className="flex-1 m-0">
+            <ChecklistPanel 
+              items={checklist} 
+              projectProgress={project.progress || 0}
+              onToggleItem={onToggleChecklistItem}
+            />
+          </TabsContent>
+          
+          <TabsContent value="deploy" className="flex-1 m-0">
+            <DeployPanel
+              projectId={project.id}
+              projectName={project.name}
+              isReady={project.progress && project.progress >= 80}
+            />
+          </TabsContent>
+        </Tabs>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

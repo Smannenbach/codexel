@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayoutNew';
-import { ChatPanel } from '@/components/workspace/ChatPanel';
 import { ProjectSidebar } from '@/components/workspace/ProjectSidebar';
-import { AgentStatus } from '@/components/workspace/AgentStatus';
+import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -101,23 +100,24 @@ export default function Workspace() {
         />
       }
       mainContent={
-        selectedProjectId ? (
-          <ChatPanel
-            messages={projectData?.messages || []}
+        selectedProjectId && projectData ? (
+          <WorkspaceLayout
+            project={projectData.project}
+            agents={projectData.agents || []}
+            messages={projectData.messages || []}
+            checklist={projectData.checklist || []}
             onSendMessage={handleSendMessage}
-            isLoading={projectLoading || sendMessageMutation.isPending}
-            projectName={projectData?.project?.name || ''}
+            onToggleChecklistItem={async (itemId: number) => {
+              // Handle checklist toggle
+              await apiRequest('PATCH', `/api/checklist/${itemId}/toggle`);
+              queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedProjectId] });
+            }}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             {projectsLoading ? "Loading projects..." : "Select or create a project to get started"}
           </div>
         )
-      }
-      rightPanel={
-        selectedProjectId && projectData?.agents ? (
-          <AgentStatus agents={projectData.agents} />
-        ) : null
       }
     />
   );

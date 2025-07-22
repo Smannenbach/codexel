@@ -1,158 +1,262 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenAI } from '@google/genai';
+import { db } from '../db';
+import { aiUsage } from '@shared/schema';
 
-// Initialize AI clients
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-const grok = new OpenAI({ 
-  baseURL: "https://api.x.ai/v1", 
-  apiKey: process.env.XAI_API_KEY 
-});
-
-export interface AIResponse {
-  content: string;
-  model: string;
-  inputTokens?: number;
-  outputTokens?: number;
-  cost?: number;
-}
+// Model pricing in cents per 1K tokens
+const MODEL_PRICING = {
+  // OpenAI
+  'gpt-4': { input: 3.0, output: 6.0 },
+  'gpt-4-turbo': { input: 1.0, output: 3.0 },
+  'gpt-3.5-turbo': { input: 0.05, output: 0.15 },
+  
+  // Anthropic
+  'claude-3.5-sonnet': { input: 0.3, output: 1.5 },
+  'claude-3-haiku': { input: 0.025, output: 0.125 },
+  
+  // Google
+  'gemini-ultra': { input: 0.5, output: 1.5 },
+  'gemini-pro': { input: 0.025, output: 0.1 },
+  
+  // Others (mock prices for now)
+  'moonshot-kimi': { input: 0.02, output: 0.08 },
+  'qwen-2.5-max': { input: 0.02, output: 0.08 },
+  'grok-2': { input: 0.5, output: 1.5 },
+  'mixtral-8x7b': { input: 0.03, output: 0.1 }
+};
 
 class AIService {
-  async generateResponse(message: string, model: string = 'gpt-4'): Promise<AIResponse> {
+  private openai: OpenAI;
+  private anthropic: Anthropic;
+  private genai: GoogleGenAI;
+
+  constructor() {
+    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    this.genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+  }
+
+  async sendMessage(
+    systemPrompt: string, 
+    userMessage: string, 
+    model: string,
+    userId?: number,
+    projectId?: number
+  ): Promise<{ content: string; inputTokens: number; outputTokens: number; cost: number }> {
+    let response: string;
+    let inputTokens = 0;
+    let outputTokens = 0;
+
     try {
-      switch (model) {
-        case 'gpt-4':
-        case 'gpt-4-turbo':
-          return await this.callOpenAI(message, model === 'gpt-4-turbo' ? 'gpt-4-turbo' : 'gpt-4');
-        
-        case 'claude-3.5-sonnet':
-          return await this.callAnthropic(message);
-        
-        case 'gemini-ultra':
-          return await this.callGemini(message);
-        
-        case 'grok-2':
-          return await this.callGrok(message, 'grok-2-1212');
-        
-        case 'grok-2-vision':
-          return await this.callGrok(message, 'grok-2-vision-1212');
-        
-        case 'moonshot-kimi':
-        case 'qwen-2.5-max':
-          // For now, use GPT-4 as fallback for these models
-          return await this.callOpenAI(message, 'gpt-4');
-        
-        default:
-          return await this.callOpenAI(message, 'gpt-4');
+      // Route to appropriate provider based on model
+      if (model.startsWith('gpt')) {
+        const completion = await this.openai.chat.completions.create({
+          model: model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        });
+
+        response = completion.choices[0].message.content || '';
+        inputTokens = completion.usage?.prompt_tokens || 0;
+        outputTokens = completion.usage?.completion_tokens || 0;
+
+      } else if (model.startsWith('claude')) {
+        const completion = await this.anthropic.messages.create({
+          model: model === 'claude-3.5-sonnet' ? 'claude-3-5-sonnet-20241022' : model,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }],
+          max_tokens: 2000
+        });
+
+        const content = completion.content[0];
+        response = content.type === 'text' ? content.text : '';
+        inputTokens = completion.usage?.input_tokens || 0;
+        outputTokens = completion.usage?.output_tokens || 0;
+
+      } else if (model.startsWith('gemini')) {
+        const fullPrompt = systemPrompt + '\n\n' + userMessage;
+        const result = await this.genai.models.generateContent({
+          model: model,
+          contents: fullPrompt,
+        });
+
+        response = result.text || '';
+        // Estimate tokens for Gemini (it doesn't provide exact counts)
+        inputTokens = Math.ceil((systemPrompt.length + userMessage.length) / 4);
+        outputTokens = Math.ceil(response.length / 4);
+
+      } else {
+        // Mock response for other models
+        response = `[${model}]: I understand your request about "${userMessage.substring(0, 50)}...". Let me help you with that.`;
+        inputTokens = Math.ceil((systemPrompt.length + userMessage.length) / 4);
+        outputTokens = Math.ceil(response.length / 4);
       }
-    } catch (error) {
-      console.error(`AI Service error for model ${model}:`, error);
-      throw new Error(`Failed to generate response with ${model}`);
+
+      // Calculate cost
+      const pricing = MODEL_PRICING[model as keyof typeof MODEL_PRICING] || { input: 0.05, output: 0.15 };
+      const cost = Math.ceil(
+        (inputTokens * pricing.input / 1000) + 
+        (outputTokens * pricing.output / 1000)
+      );
+
+      // Track usage if userId provided
+      if (userId) {
+        await db.insert(aiUsage).values({
+          userId,
+          projectId,
+          model,
+          inputTokens,
+          outputTokens,
+          cost
+        });
+      }
+
+      return {
+        content: response,
+        inputTokens,
+        outputTokens,
+        cost
+      };
+
+    } catch (error: any) {
+      console.error('AI Service Error:', error);
+      
+      // Fallback response
+      return {
+        content: `I apologize, but I encountered an error while processing your request. Please ensure the ${model} API key is configured correctly.`,
+        inputTokens: 0,
+        outputTokens: 0,
+        cost: 0
+      };
     }
   }
 
-  private async callOpenAI(message: string, model: string): Promise<AIResponse> {
-    const response = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful AI assistant for Codexel.ai, an AI-powered application development platform. Provide clear, concise, and actionable responses.'
-        },
-        { role: 'user', content: message }
-      ],
-      max_tokens: 1000,
-    });
+  async generateCode(
+    requirements: string,
+    model: string,
+    language: string = 'typescript',
+    userId?: number,
+    projectId?: number
+  ): Promise<{ code: string; explanation: string; cost: number }> {
+    const systemPrompt = `You are an expert ${language} developer. Generate clean, well-commented code based on the requirements. 
+    Provide your response in this format:
+    
+    CODE:
+    [Your code here]
+    
+    EXPLANATION:
+    [Brief explanation of the code]`;
 
-    const choice = response.choices[0];
-    return {
-      content: choice.message.content || 'No response generated',
-      model: model,
-      inputTokens: response.usage?.prompt_tokens,
-      outputTokens: response.usage?.completion_tokens,
-      cost: this.calculateCost(model, response.usage?.prompt_tokens || 0, response.usage?.completion_tokens || 0)
-    };
-  }
+    const result = await this.sendMessage(
+      systemPrompt,
+      requirements,
+      model,
+      userId,
+      projectId
+    );
 
-  private async callAnthropic(message: string): Promise<AIResponse> {
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1000,
-      messages: [
-        {
-          role: 'user',
-          content: `You are a helpful AI assistant for Codexel.ai, an AI-powered application development platform. Provide clear, concise, and actionable responses.\n\nUser: ${message}`
-        }
-      ],
-    });
-
-    const content = response.content[0];
-    return {
-      content: content.type === 'text' ? content.text : 'No response generated',
-      model: 'claude-3.5-sonnet',
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      cost: this.calculateCost('claude-3.5-sonnet', response.usage.input_tokens, response.usage.output_tokens)
-    };
-  }
-
-  private async callGemini(message: string): Promise<AIResponse> {
-    const response = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `You are a helpful AI assistant for Codexel.ai, an AI-powered application development platform. Provide clear, concise, and actionable responses.\n\nUser: ${message}`,
-    });
+    // Parse the response
+    const parts = result.content.split(/CODE:|EXPLANATION:/);
+    const code = parts[1]?.trim() || result.content;
+    const explanation = parts[2]?.trim() || 'Code generated based on your requirements.';
 
     return {
-      content: response.text || 'No response generated',
-      model: 'gemini-ultra',
-      inputTokens: 0, // Gemini doesn't provide token counts in this format
-      outputTokens: 0,
-      cost: 0.01 // Estimated cost
+      code,
+      explanation,
+      cost: result.cost
     };
   }
 
-  private async callGrok(message: string, model: string): Promise<AIResponse> {
-    const response = await grok.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful AI assistant for Codexel.ai, an AI-powered application development platform. Provide clear, concise, and actionable responses.'
-        },
-        { role: 'user', content: message }
-      ],
-      max_tokens: 1000,
-    });
+  async analyzeCode(
+    code: string,
+    model: string,
+    userId?: number,
+    projectId?: number
+  ): Promise<{ analysis: string; suggestions: string[]; cost: number }> {
+    const systemPrompt = `You are an expert code reviewer. Analyze the provided code for:
+    1. Code quality and best practices
+    2. Potential bugs or security issues
+    3. Performance optimizations
+    4. Readability improvements
+    
+    Provide your response in this format:
+    
+    ANALYSIS:
+    [Your detailed analysis]
+    
+    SUGGESTIONS:
+    - [Suggestion 1]
+    - [Suggestion 2]
+    - [etc]`;
 
-    const choice = response.choices[0];
+    const result = await this.sendMessage(
+      systemPrompt,
+      code,
+      model,
+      userId,
+      projectId
+    );
+
+    // Parse the response
+    const parts = result.content.split(/ANALYSIS:|SUGGESTIONS:/);
+    const analysis = parts[1]?.trim() || result.content;
+    const suggestionsText = parts[2]?.trim() || '';
+    const suggestions = suggestionsText
+      .split('\n')
+      .filter(line => line.trim().startsWith('-'))
+      .map(line => line.replace(/^-\s*/, ''));
+
     return {
-      content: choice.message.content || 'No response generated',
-      model: model === 'grok-2-1212' ? 'grok-2' : 'grok-2-vision',
-      inputTokens: response.usage?.prompt_tokens,
-      outputTokens: response.usage?.completion_tokens,
-      cost: this.calculateCost(model, response.usage?.prompt_tokens || 0, response.usage?.completion_tokens || 0)
+      analysis,
+      suggestions,
+      cost: result.cost
     };
   }
 
-  private calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-    // Simplified cost calculation - in production you'd use actual pricing
-    const rates = {
-      'gpt-4': { input: 0.03, output: 0.06 },
-      'gpt-4-turbo': { input: 0.01, output: 0.03 },
-      'claude-3.5-sonnet': { input: 0.003, output: 0.015 },
-      'grok-2-1212': { input: 0.002, output: 0.010 },
-      'grok-2-vision-1212': { input: 0.003, output: 0.015 },
+  getModelCapabilities(model: string) {
+    const capabilities: Record<string, any> = {
+      'gpt-4': {
+        maxTokens: 8192,
+        strengths: ['Complex reasoning', 'Code generation', 'Analysis'],
+        costLevel: 'high'
+      },
+      'gpt-4-turbo': {
+        maxTokens: 128000,
+        strengths: ['Large context', 'Fast responses', 'Code generation'],
+        costLevel: 'medium'
+      },
+      'claude-3.5-sonnet': {
+        maxTokens: 200000,
+        strengths: ['Code writing', 'Technical documentation', 'Complex analysis'],
+        costLevel: 'medium'
+      },
+      'gemini-ultra': {
+        maxTokens: 32000,
+        strengths: ['Multimodal', 'Creative tasks', 'Analysis'],
+        costLevel: 'medium'
+      },
+      'moonshot-kimi': {
+        maxTokens: 128000,
+        strengths: ['Large context', 'Chinese language', 'Cost-effective'],
+        costLevel: 'low'
+      },
+      'qwen-2.5-max': {
+        maxTokens: 32000,
+        strengths: ['Fast responses', 'Multilingual', 'Cost-effective'],
+        costLevel: 'low'
+      }
     };
 
-    const rate = rates[model as keyof typeof rates] || { input: 0.001, output: 0.002 };
-    return (inputTokens * rate.input + outputTokens * rate.output) / 1000;
-  }
-
-  async sendMessage(systemPrompt: string, userMessage: string, model: string = 'gpt-4'): Promise<string> {
-    const response = await this.generateResponse(`${systemPrompt}\n\nUser: ${userMessage}`, model);
-    return response.content;
+    return capabilities[model] || {
+      maxTokens: 4096,
+      strengths: ['General tasks'],
+      costLevel: 'low'
+    };
   }
 }
 

@@ -22,6 +22,10 @@ interface WorkflowStep {
 export class AgentOrchestrator {
   private activeWorkflows: Map<number, WorkflowStep[]> = new Map();
 
+  async processMessage(projectId: number, userMessage: string): Promise<string> {
+    return this.processUserRequest(projectId, userMessage, 'gpt-4');
+  }
+
   async processUserRequest(
     projectId: number,
     userMessage: string,
@@ -72,7 +76,9 @@ export class AgentOrchestrator {
     const response = await aiService.sendMessage(
       systemPrompt,
       userMessage,
-      plannerAgent?.model || 'gpt-4-turbo'
+      plannerAgent?.model || 'gpt-4-turbo',
+      undefined,
+      projectId
     );
 
     try {
@@ -237,10 +243,10 @@ export class AgentOrchestrator {
   private async getAgentByRole(projectId: number, role: string): Promise<Agent | null> {
     const projectData = await projectService.getProjectWithAgents(projectId);
     
-    if (!projectData) return null;
+    if (!projectData || !projectData.projectAgents) return null;
     
-    const projectAgent = projectData.projectAgents?.find(
-      (pa: any) => pa.agent.role === role
+    const projectAgent = projectData.projectAgents.find(
+      (pa: any) => pa.agent?.role === role
     );
     
     return projectAgent?.agent || null;

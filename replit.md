@@ -66,6 +66,30 @@ The platform supports multiple AI agents working collaboratively:
 - **Color-coded Interface**: Visual distinction between different agent types
 - **Task Orchestration**: Dependency management and sequential task execution
 
+### Deployment System
+Comprehensive deployment infrastructure for production-ready applications:
+
+- **One-Click Deployment**: Automated deployment process with progress tracking
+- **Multiple Environments**: Support for production, staging, and development
+- **Real-time Status**: Live deployment status updates and logs
+- **Custom Domains**: Configuration for custom domain deployment
+
+### Template System
+Pre-built application templates for rapid development:
+
+- **E-commerce Template**: Complete online store with payment integration
+- **AI Chatbot Template**: Real-time chat application with AI integration
+- **Checklist Generation**: Auto-generated task lists based on template type
+- **Agent Assignment**: Pre-configured specialist agents per template
+
+### Progress Tracking
+Advanced project monitoring and analytics:
+
+- **Visual Progress**: Category-based progress visualization
+- **Time Tracking**: Elapsed time and velocity metrics
+- **Completion Estimates**: AI-driven project completion predictions
+- **Task Categorization**: Organized by Planning, Architecture, Design, Development, Testing, Deployment
+
 ## Data Flow
 
 ### User Interaction Flow

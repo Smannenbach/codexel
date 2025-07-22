@@ -10,26 +10,27 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   // Project operations
-  getAllProjects(): Promise<Project[]>;
+  getProjects(userId: number): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
+  updateProject(id: number, data: Partial<Project>): Promise<void>;
 
   // Agent operations
-  getAgent(id: number): Promise<Agent | undefined>;
   getAgentsByProject(projectId: number): Promise<Agent[]>;
   createAgent(agent: InsertAgent): Promise<Agent>;
-  updateAgent(id: number, agent: Partial<InsertAgent>): Promise<Agent>;
 
   // Message operations
-  getMessage(id: number): Promise<Message | undefined>;
   getMessagesByProject(projectId: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
 
   // Checklist operations
+  getChecklistItem(id: number): Promise<ChecklistItem | undefined>;
   getChecklistItemsByProject(projectId: number): Promise<ChecklistItem[]>;
   createChecklistItem(item: InsertChecklistItem): Promise<ChecklistItem>;
-  updateChecklistItem(id: number, item: Partial<InsertChecklistItem>): Promise<ChecklistItem>;
+  updateChecklistItem(id: number, data: Partial<ChecklistItem>): Promise<void>;
+
+  // Project-Agent association
+  associateAgentWithProject(projectId: number, agentId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -50,7 +51,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Project operations
-  async getAllProjects(): Promise<Project[]> {
+  async getProjects(userId: number): Promise<Project[]> {
     return await db.select().from(projects).orderBy(desc(projects.createdAt));
   }
 
@@ -64,19 +65,13 @@ export class DatabaseStorage implements IStorage {
     return project;
   }
 
-  async updateProject(id: number, data: Partial<InsertProject>): Promise<Project> {
-    const [project] = await db.update(projects)
+  async updateProject(id: number, data: Partial<Project>): Promise<void> {
+    await db.update(projects)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(projects.id, id))
-      .returning();
-    return project;
+      .where(eq(projects.id, id));
   }
 
   // Agent operations
-  async getAgent(id: number): Promise<Agent | undefined> {
-    const [agent] = await db.select().from(agents).where(eq(agents.id, id));
-    return agent;
-  }
 
   async getAgentsByProject(projectId: number): Promise<Agent[]> {
     const result = await db.select({
@@ -94,19 +89,9 @@ export class DatabaseStorage implements IStorage {
     return agent;
   }
 
-  async updateAgent(id: number, data: Partial<InsertAgent>): Promise<Agent> {
-    const [agent] = await db.update(agents)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(agents.id, id))
-      .returning();
-    return agent;
-  }
+
 
   // Message operations
-  async getMessage(id: number): Promise<Message | undefined> {
-    const [message] = await db.select().from(messages).where(eq(messages.id, id));
-    return message;
-  }
 
   async getMessagesByProject(projectId: number): Promise<Message[]> {
     return await db.select()
@@ -133,12 +118,28 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
-  async updateChecklistItem(id: number, data: Partial<InsertChecklistItem>): Promise<ChecklistItem> {
-    const [item] = await db.update(checklistItems)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(checklistItems.id, id))
-      .returning();
+  async getChecklistItem(id: number): Promise<ChecklistItem | undefined> {
+    const [item] = await db.select().from(checklistItems).where(eq(checklistItems.id, id));
     return item;
+  }
+
+  async createChecklistItem(insertItem: InsertChecklistItem): Promise<ChecklistItem> {
+    const [item] = await db.insert(checklistItems).values(insertItem).returning();
+    return item;
+  }
+
+  async updateChecklistItem(id: number, data: Partial<ChecklistItem>): Promise<void> {
+    await db.update(checklistItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(checklistItems.id, id));
+  }
+
+  // Project-Agent association
+  async associateAgentWithProject(projectId: number, agentId: number): Promise<void> {
+    await db.insert(projectAgents).values({
+      projectId,
+      agentId,
+    });
   }
 }
 

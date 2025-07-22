@@ -1,106 +1,122 @@
-import { AIModelConfig } from '@/types/workspace';
+export interface AIModel {
+  id: string;
+  name: string;
+  provider: string;
+  description: string;
+  capabilities: string[];
+  costPerToken: number;
+  maxTokens: number;
+  contextWindow: number;
+  responseTime: 'fast' | 'medium' | 'slow';
+}
 
-export type AIModel = 'gpt-4' | 'gpt-4-turbo' | 'gemini-ultra' | 'claude-3.5-sonnet' | 'moonshot-kimi' | 'qwen-2.5-max' | 'grok-2' | 'grok-2-vision';
-
-export const AI_MODELS: Record<AIModel, AIModelConfig> = {
+export const AI_MODELS: Record<string, AIModel> = {
   'gpt-4': {
     id: 'gpt-4',
-    name: 'GPT-4 Turbo',
+    name: 'GPT-4',
     provider: 'OpenAI',
-    cost: 5,
-    quality: 10,
-    speed: 7,
-    capabilities: ['reasoning', 'code', 'analysis', 'planning']
+    description: 'Most capable model for complex reasoning and code generation',
+    capabilities: ['text', 'code', 'analysis', 'creative'],
+    costPerToken: 0.03,
+    maxTokens: 8192,
+    contextWindow: 8192,
+    responseTime: 'medium'
   },
   'gpt-4-turbo': {
     id: 'gpt-4-turbo',
-    name: 'GPT-4 Turbo (Premium)',
+    name: 'GPT-4 Turbo',
     provider: 'OpenAI',
-    cost: 7,
-    quality: 10,
-    speed: 9,
-    capabilities: ['reasoning', 'code', 'analysis', 'planning', 'multimodal']
-  },
-  'gemini-ultra': {
-    id: 'gemini-ultra',
-    name: 'Gemini Ultra',
-    provider: 'Google',
-    cost: 6,
-    quality: 9,
-    speed: 8,
-    capabilities: ['multimodal', 'reasoning', 'code', 'analysis']
+    description: 'Faster and more cost-effective GPT-4 with larger context',
+    capabilities: ['text', 'code', 'vision', 'analysis'],
+    costPerToken: 0.01,
+    maxTokens: 128000,
+    contextWindow: 128000,
+    responseTime: 'fast'
   },
   'claude-3.5-sonnet': {
     id: 'claude-3.5-sonnet',
     name: 'Claude 3.5 Sonnet',
     provider: 'Anthropic',
-    cost: 4,
-    quality: 9,
-    speed: 8,
-    capabilities: ['code', 'reasoning', 'analysis', 'writing']
+    description: 'Excellent for code writing and technical documentation',
+    capabilities: ['text', 'code', 'analysis', 'technical'],
+    costPerToken: 0.003,
+    maxTokens: 200000,
+    contextWindow: 200000,
+    responseTime: 'fast'
   },
-  'moonshot-kimi': {
-    id: 'moonshot-kimi',
-    name: 'Moonshot Kimi K2',
-    provider: 'Moonshot',
-    cost: 2,
-    quality: 8,
-    speed: 9,
-    capabilities: ['code', 'reasoning', 'cost-effective']
-  },
-  'qwen-2.5-max': {
-    id: 'qwen-2.5-max',
-    name: 'Alibaba Qwen 2.5-Max',
-    provider: 'Alibaba',
-    cost: 1,
-    quality: 8,
-    speed: 9,
-    capabilities: ['code', 'reasoning', 'open-source']
-  },
-  'grok-2-vision': {
-    id: 'grok-2-vision',
-    name: 'Grok 2 Vision',
-    provider: 'xAI',
-    cost: 3,
-    quality: 9,
-    speed: 8,
-    capabilities: ['multimodal', 'reasoning', 'code', 'analysis', 'vision']
+  'gemini-ultra': {
+    id: 'gemini-ultra',
+    name: 'Gemini Ultra',
+    provider: 'Google',
+    description: 'Multimodal model with advanced reasoning capabilities',
+    capabilities: ['text', 'code', 'vision', 'multimodal'],
+    costPerToken: 0.005,
+    maxTokens: 32768,
+    contextWindow: 32768,
+    responseTime: 'fast'
   },
   'grok-2': {
     id: 'grok-2',
-    name: 'Grok 2',
+    name: 'Grok-2',
     provider: 'xAI',
-    cost: 2,
-    quality: 8,
-    speed: 9,
-    capabilities: ['reasoning', 'code', 'analysis', 'cost-effective']
+    description: 'Real-time knowledge and humor-aware AI model',
+    capabilities: ['text', 'code', 'real-time', 'humor'],
+    costPerToken: 0.008,
+    maxTokens: 100000,
+    contextWindow: 100000,
+    responseTime: 'fast'
+  },
+  'moonshot-kimi': {
+    id: 'moonshot-kimi',
+    name: 'Moonshot Kimi',
+    provider: 'Moonshot',
+    description: 'Cost-effective model with large context window',
+    capabilities: ['text', 'code', 'multilingual'],
+    costPerToken: 0.001,
+    maxTokens: 200000,
+    contextWindow: 200000,
+    responseTime: 'fast'
+  },
+  'qwen-2.5-max': {
+    id: 'qwen-2.5-max',
+    name: 'Qwen 2.5 Max',
+    provider: 'Alibaba',
+    description: 'High-performance budget-friendly option',
+    capabilities: ['text', 'code', 'multilingual', 'math'],
+    costPerToken: 0.002,
+    maxTokens: 32768,
+    contextWindow: 32768,
+    responseTime: 'fast'
+  },
+  'deepseek-v3': {
+    id: 'deepseek-v3',
+    name: 'DeepSeek V3',
+    provider: 'DeepSeek',
+    description: 'Open-source model optimized for coding tasks',
+    capabilities: ['text', 'code', 'technical'],
+    costPerToken: 0.001,
+    maxTokens: 16384,
+    contextWindow: 16384,
+    responseTime: 'fast'
   }
 };
 
-// Type already defined above
+export function getModelById(modelId: string): AIModel | undefined {
+  return AI_MODELS[modelId];
+}
 
-export const getOptimalModelForTask = (taskType: string): AIModel => {
-  switch (taskType) {
-    case 'planning':
-    case 'architecture':
-      return 'gpt-4-turbo';
-    case 'coding':
-    case 'frontend':
-      return 'moonshot-kimi';
-    case 'backend':
-      return 'claude-3.5-sonnet';
-    case 'design':
-    case 'ui':
-      return 'gemini-ultra';
-    case 'testing':
-      return 'qwen-2.5-max';
-    case 'analysis':
-    case 'review':
-      return 'grok-2';
-    case 'vision':
-    case 'image':
-      return 'grok-2-vision';
-    default:
-      return 'gpt-4';
-  }
-};
+export function getCheapestModel(): AIModel {
+  return Object.values(AI_MODELS).reduce((cheapest, model) => 
+    model.costPerToken < cheapest.costPerToken ? model : cheapest
+  );
+}
+
+export function getFastestModel(): AIModel {
+  return Object.values(AI_MODELS).find(model => model.responseTime === 'fast') || AI_MODELS['gpt-4-turbo'];
+}
+
+export function getModelsByCapability(capability: string): AIModel[] {
+  return Object.values(AI_MODELS).filter(model => 
+    model.capabilities.includes(capability)
+  );
+}
