@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, varchar, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, varchar, real, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -182,7 +182,7 @@ export type InsertDeployment = typeof deployments.$inferInsert;
 // Memory tables for hive mind functionality
 export const memories = pgTable('memories', {
   id: serial('id').primaryKey(),
-  userId: varchar('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id),
   projectId: integer('project_id').references(() => projects.id),
   agentId: integer('agent_id').references(() => agents.id),
   type: varchar('type', { length: 50 }).notNull(),
@@ -211,7 +211,7 @@ export const hiveMindEntries = pgTable('hive_mind_entries', {
 // Queue system for preventing user interruption
 export const promptQueue = pgTable('prompt_queue', {
   id: serial('id').primaryKey(),
-  userId: varchar('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id),
   projectId: integer('project_id').references(() => projects.id),
   prompt: text('prompt').notNull(),
   priority: integer('priority').default(0),
