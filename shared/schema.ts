@@ -178,3 +178,54 @@ export const deployments = pgTable("deployments", {
 
 export type Deployment = typeof deployments.$inferSelect;
 export type InsertDeployment = typeof deployments.$inferInsert;
+
+// Memory tables for hive mind functionality
+export const memories = pgTable('memories', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').references(() => users.id),
+  projectId: integer('project_id').references(() => projects.id),
+  agentId: integer('agent_id').references(() => agents.id),
+  type: varchar('type', { length: 50 }).notNull(),
+  content: jsonb('content').notNull(),
+  embedding: jsonb('embedding').notNull().$type<number[]>(),
+  timestamp: timestamp('timestamp').defaultNow(),
+  metadata: jsonb('metadata').default({}),
+}, (table) => [
+  index('memories_user_idx').on(table.userId),
+  index('memories_project_idx').on(table.projectId),
+  index('memories_timestamp_idx').on(table.timestamp),
+]);
+
+export const hiveMindEntries = pgTable('hive_mind_entries', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', { length: 50 }).notNull(),
+  content: jsonb('content').notNull(),
+  embedding: jsonb('embedding').notNull().$type<number[]>(),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('hive_mind_type_idx').on(table.type),
+  index('hive_mind_created_idx').on(table.createdAt),
+]);
+
+// Queue system for preventing user interruption
+export const promptQueue = pgTable('prompt_queue', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').references(() => users.id),
+  projectId: integer('project_id').references(() => projects.id),
+  prompt: text('prompt').notNull(),
+  priority: integer('priority').default(0),
+  status: varchar('status', { length: 20 }).default('queued'),
+  queuedAt: timestamp('queued_at').defaultNow(),
+  processedAt: timestamp('processed_at'),
+}, (table) => [
+  index('queue_user_status_idx').on(table.userId, table.status),
+  index('queue_priority_idx').on(table.priority),
+]);
+
+export type Memory = typeof memories.$inferSelect;
+export type InsertMemory = typeof memories.$inferInsert;
+export type HiveMindEntry = typeof hiveMindEntries.$inferSelect;
+export type InsertHiveMindEntry = typeof hiveMindEntries.$inferInsert;
+export type QueuedPrompt = typeof promptQueue.$inferSelect;
+export type InsertQueuedPrompt = typeof promptQueue.$inferInsert;
