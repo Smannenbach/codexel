@@ -1172,6 +1172,684 @@ export const projectTemplates: ProjectTemplate[] = [
         'What\'s your service area?'
       ]
     }
+  },
+
+  // LEGAL INDUSTRY - PERSONAL INJURY ATTORNEYS
+  {
+    id: 'personal-injury-attorney',
+    name: 'Personal Injury Law Firm Website',
+    description: 'High-converting personal injury attorney website with case evaluation, live chat, and results showcase',
+    category: 'Legal',
+    industry: 'Personal Injury Law',
+    targetRole: 'Personal Injury Attorney',
+    features: [
+      'Free case evaluation form',
+      'Live chat with intake team',
+      'Case results showcase',
+      'Practice area pages',
+      'Attorney profiles',
+      'Client testimonials',
+      'Settlement calculator',
+      'Accident report forms',
+      'Mobile accident app',
+      '24/7 availability display'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Live Chat API', 'SMS'],
+    estimatedTime: '3-4 weeks',
+    difficulty: 'advanced',
+    icon: '⚖️',
+    prompts: {
+      initial: 'Build a personal injury law firm website optimized for conversions and lead capture',
+      customization: [
+        'What types of injuries do you handle?',
+        'Do you work on contingency?',
+        'What\'s your case success rate?'
+      ]
+    }
+  },
+
+  // MEDICAL MALPRACTICE ATTORNEYS
+  {
+    id: 'medical-malpractice-attorney',
+    name: 'Medical Malpractice Law Firm',
+    description: 'Specialized medical malpractice website with case screening, expert resources, and victim support',
+    category: 'Legal',
+    industry: 'Medical Malpractice Law',
+    targetRole: 'Medical Malpractice Attorney',
+    features: [
+      'Medical error case evaluator',
+      'Expert witness network',
+      'Hospital safety ratings',
+      'Case timeline builder',
+      'Damage calculator',
+      'Medical record upload',
+      'Nurse case managers',
+      'Video consultations',
+      'Success stories library',
+      'Medical glossary'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'HIPAA Compliance', 'Video API'],
+    estimatedTime: '4-5 weeks',
+    difficulty: 'advanced',
+    icon: '🏥',
+    prompts: {
+      initial: 'Create a medical malpractice law firm website with HIPAA-compliant features',
+      customization: [
+        'What medical errors do you handle?',
+        'Do you have medical experts on staff?',
+        'Which states are you licensed in?'
+      ]
+    }
+  },
+
+  // CLASS ACTION ATTORNEYS
+  {
+    id: 'class-action-attorney',
+    name: 'Class Action Law Firm Platform',
+    description: 'Mass tort and class action platform with case management, plaintiff portal, and settlement tracking',
+    category: 'Legal',
+    industry: 'Class Action Law',
+    targetRole: 'Class Action Attorney',
+    features: [
+      'Mass plaintiff registration',
+      'Case status tracker',
+      'Document distribution',
+      'Settlement calculator',
+      'Plaintiff portal',
+      'Automated notifications',
+      'Media center',
+      'Co-counsel network',
+      'Court filing tracker',
+      'FAQ knowledge base'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Mass Email', 'Document Management'],
+    estimatedTime: '5-6 weeks',
+    difficulty: 'advanced',
+    icon: '👥',
+    prompts: {
+      initial: 'Build a class action law firm platform with plaintiff management system',
+      customization: [
+        'What types of class actions?',
+        'How many plaintiffs typically?',
+        'Do you need co-counsel features?'
+      ]
+    }
+  },
+
+  // AI & INTELLECTUAL PROPERTY ATTORNEYS
+  {
+    id: 'ai-ip-attorney',
+    name: 'AI & IP Law Firm Website',
+    description: 'Cutting-edge IP law firm website specializing in AI, software patents, and tech licensing',
+    category: 'Legal',
+    industry: 'Intellectual Property Law',
+    targetRole: 'IP Attorney',
+    features: [
+      'Patent search integration',
+      'AI invention disclosure',
+      'Trademark monitoring',
+      'License agreement generator',
+      'IP portfolio dashboard',
+      'Prior art database',
+      'Tech transfer portal',
+      'Startup packages',
+      'Copyright registration',
+      'Trade secret vault'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Patent APIs', 'Blockchain'],
+    estimatedTime: '4-5 weeks',
+    difficulty: 'advanced',
+    icon: '🤖',
+    prompts: {
+      initial: 'Create an AI & IP law firm website with patent search and portfolio management',
+      customization: [
+        'Do you focus on AI/ML patents?',
+        'Do you handle open source licensing?',
+        'What tech sectors do you serve?'
+      ]
+    }
+  },
+
+  // CORPORATE ATTORNEYS
+  {
+    id: 'corporate-attorney',
+    name: 'Corporate Law Firm Website',
+    description: 'Premium corporate law website with deal room, transaction management, and investor resources',
+    category: 'Legal',
+    industry: 'Corporate Law',
+    targetRole: 'Corporate Attorney',
+    features: [
+      'Virtual deal room',
+      'Transaction tracker',
+      'Entity formation tools',
+      'Contract templates',
+      'Board portal',
+      'Compliance calendar',
+      'M&A calculator',
+      'Investor resources',
+      'SEC filing tracker',
+      'Corporate governance'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'DocuSign', 'Data Room API'],
+    estimatedTime: '4-5 weeks',
+    difficulty: 'advanced',
+    icon: '🏢',
+    prompts: {
+      initial: 'Build a corporate law firm website with transaction management features',
+      customization: [
+        'What size deals do you handle?',
+        'Do you need M&A features?',
+        'Which industries do you serve?'
+      ]
+    }
+  },
+
+  // DIVORCE/FAMILY LAW ATTORNEYS
+  {
+    id: 'divorce-attorney',
+    name: 'Family Law Practice Website',
+    description: 'Compassionate family law website with cost calculators, document prep, and mediation scheduling',
+    category: 'Legal',
+    industry: 'Family Law',
+    targetRole: 'Divorce Attorney',
+    features: [
+      'Divorce cost calculator',
+      'Child support estimator',
+      'Asset division tool',
+      'Document preparation',
+      'Mediation scheduling',
+      'Parenting plan builder',
+      'Client portal',
+      'Payment plans',
+      'Resource library',
+      'Emergency contact'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Payment Plans', 'Scheduling'],
+    estimatedTime: '3 weeks',
+    difficulty: 'intermediate',
+    icon: '👨‍👩‍👧',
+    prompts: {
+      initial: 'Create a family law website with calculators and client resources',
+      customization: [
+        'Do you handle high-asset divorces?',
+        'Do you offer mediation?',
+        'What\'s your typical case timeline?'
+      ]
+    }
+  },
+
+  // CRIMINAL DEFENSE ATTORNEYS
+  {
+    id: 'criminal-defense-attorney',
+    name: 'Criminal Defense Law Firm',
+    description: '24/7 criminal defense website with bail info, case evaluation, and attorney matching',
+    category: 'Legal',
+    industry: 'Criminal Law',
+    targetRole: 'Criminal Defense Attorney',
+    features: [
+      '24/7 emergency line',
+      'Bail bond calculator',
+      'Charge information database',
+      'Attorney availability',
+      'Case evaluation form',
+      'Court date reminders',
+      'Jail visit scheduling',
+      'Payment arrangements',
+      'Case results archive',
+      'Know your rights guide'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Twilio', 'SMS alerts'],
+    estimatedTime: '3 weeks',
+    difficulty: 'intermediate',
+    icon: '🚨',
+    prompts: {
+      initial: 'Build a criminal defense website with 24/7 availability and bail information',
+      customization: [
+        'What types of crimes do you defend?',
+        'Do you handle federal cases?',
+        'Do you work with bail bondsmen?'
+      ]
+    }
+  },
+
+  // IMMIGRATION ATTORNEYS
+  {
+    id: 'immigration-attorney',
+    name: 'Immigration Law Firm Website',
+    description: 'Multi-lingual immigration website with visa trackers, document checklists, and case status',
+    category: 'Legal',
+    industry: 'Immigration Law',
+    targetRole: 'Immigration Attorney',
+    features: [
+      'Visa eligibility quiz',
+      'Case status tracker',
+      'Document checklist',
+      'Multi-language support',
+      'USCIS updates feed',
+      'Fee calculator',
+      'Appointment scheduler',
+      'Translation services',
+      'Success stories',
+      'Immigration news'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Translation API', 'USCIS API'],
+    estimatedTime: '3-4 weeks',
+    difficulty: 'advanced',
+    icon: '🌍',
+    prompts: {
+      initial: 'Create an immigration law website with multi-language support and case tracking',
+      customization: [
+        'Which visa types do you handle?',
+        'What languages do you need?',
+        'Do you handle deportation defense?'
+      ]
+    }
+  },
+
+  // ESTATE PLANNING ATTORNEYS
+  {
+    id: 'estate-planning-attorney',
+    name: 'Estate Planning Law Firm',
+    description: 'Trust and estate website with planning tools, document vault, and family portal',
+    category: 'Legal',
+    industry: 'Estate Law',
+    targetRole: 'Estate Planning Attorney',
+    features: [
+      'Estate planning quiz',
+      'Trust calculator',
+      'Document vault',
+      'Family tree builder',
+      'Asset inventory',
+      'Beneficiary portal',
+      'Tax estimator',
+      'Will updates tracker',
+      'Power of attorney forms',
+      'Legacy planning guide'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Encryption', 'DocuSign'],
+    estimatedTime: '3-4 weeks',
+    difficulty: 'intermediate',
+    icon: '📜',
+    prompts: {
+      initial: 'Build an estate planning website with document vault and planning tools',
+      customization: [
+        'Do you handle high net worth estates?',
+        'Do you offer tax planning?',
+        'What\'s your typical client age?'
+      ]
+    }
+  },
+
+  // DENTAL PRACTICES
+  {
+    id: 'dental-practice',
+    name: 'Modern Dental Practice Website',
+    description: 'Patient-friendly dental website with online booking, treatment gallery, and insurance verification',
+    category: 'Healthcare',
+    industry: 'Dentistry',
+    features: [
+      'Online appointment booking',
+      'Insurance verification',
+      'Treatment cost estimator',
+      'Before/after gallery',
+      'Patient portal',
+      'Treatment plan builder',
+      'Payment plans',
+      'Emergency dental info',
+      'Virtual consultations',
+      'Review management'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Dental APIs', 'Payment Processing'],
+    estimatedTime: '3 weeks',
+    difficulty: 'intermediate',
+    icon: '🦷',
+    prompts: {
+      initial: 'Create a dental practice website with patient booking and insurance features',
+      customization: [
+        'What dental services do you offer?',
+        'Do you accept insurance?',
+        'Do you offer payment plans?'
+      ]
+    }
+  },
+
+  // COSMETIC DENTISTS
+  {
+    id: 'cosmetic-dentist',
+    name: 'Cosmetic Dentistry Showcase',
+    description: 'High-end cosmetic dentistry website with smile gallery, virtual design, and financing options',
+    category: 'Healthcare',
+    industry: 'Cosmetic Dentistry',
+    targetRole: 'Cosmetic Dentist',
+    features: [
+      'Smile gallery showcase',
+      'Virtual smile design',
+      'Treatment simulator',
+      'Celebrity smile matcher',
+      'Financing calculator',
+      'Before/after slider',
+      'Video testimonials',
+      'Spa amenities showcase',
+      'VIP patient program',
+      'Social media gallery'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Image Processing', '3D Viewer'],
+    estimatedTime: '4 weeks',
+    difficulty: 'advanced',
+    icon: '✨',
+    prompts: {
+      initial: 'Build a luxury cosmetic dentistry website with smile design features',
+      customization: [
+        'What cosmetic procedures do you specialize in?',
+        'Do you offer smile makeovers?',
+        'What\'s your price range?'
+      ]
+    }
+  },
+
+  // PLASTIC SURGEONS
+  {
+    id: 'plastic-surgeon',
+    name: 'Plastic Surgery Practice Website',
+    description: 'Premium plastic surgery website with 3D imaging, virtual consultations, and results gallery',
+    category: 'Healthcare',
+    industry: 'Plastic Surgery',
+    targetRole: 'Plastic Surgeon',
+    features: [
+      '3D imaging viewer',
+      'Virtual consultations',
+      'Before/after galleries',
+      'Procedure videos',
+      'Cost estimator',
+      'Financing options',
+      'Recovery timeline',
+      'Patient testimonials',
+      'Board certifications',
+      'Private patient portal'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', '3D Imaging API', 'HIPAA Compliance'],
+    estimatedTime: '5 weeks',
+    difficulty: 'advanced',
+    icon: '🏥',
+    prompts: {
+      initial: 'Create a plastic surgery website with 3D imaging and consultation features',
+      customization: [
+        'What procedures do you specialize in?',
+        'Do you offer non-surgical treatments?',
+        'Do you need 3D imaging integration?'
+      ]
+    }
+  },
+
+  // AESTHETIC MEDICINE
+  {
+    id: 'med-spa',
+    name: 'Medical Spa & Aesthetics',
+    description: 'Luxury med spa website with treatment menu, membership programs, and booking system',
+    category: 'Healthcare',
+    industry: 'Aesthetic Medicine',
+    features: [
+      'Treatment menu catalog',
+      'Membership programs',
+      'Package deals builder',
+      'Virtual skin analysis',
+      'Loyalty rewards',
+      'Gift card sales',
+      'Provider profiles',
+      'Treatment tracking',
+      'Product shop',
+      'Event calendar'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Booking System', 'E-commerce'],
+    estimatedTime: '3-4 weeks',
+    difficulty: 'intermediate',
+    icon: '💉',
+    prompts: {
+      initial: 'Build a medical spa website with membership and booking features',
+      customization: [
+        'What aesthetic treatments do you offer?',
+        'Do you sell skincare products?',
+        'Do you have membership tiers?'
+      ]
+    }
+  },
+
+  // ORTHODONTISTS
+  {
+    id: 'orthodontist',
+    name: 'Orthodontic Practice Website',
+    description: 'Modern orthodontics website with treatment simulator, progress tracking, and parent portal',
+    category: 'Healthcare',
+    industry: 'Orthodontics',
+    targetRole: 'Orthodontist',
+    features: [
+      'Smile assessment tool',
+      'Treatment simulator',
+      'Progress photo tracker',
+      'Parent portal',
+      'Payment calculator',
+      'Appointment reminders',
+      'Rewards program',
+      'Emergency care guide',
+      'Virtual check-ins',
+      'Treatment timeline'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Image Analysis', 'SMS'],
+    estimatedTime: '3 weeks',
+    difficulty: 'intermediate',
+    icon: '😁',
+    prompts: {
+      initial: 'Create an orthodontic website with treatment tracking and parent portal',
+      customization: [
+        'Do you offer Invisalign?',
+        'Do you treat adults and children?',
+        'What\'s your payment structure?'
+      ]
+    }
+  },
+
+  // OPHTHALMOLOGISTS / EYE SURGEONS
+  {
+    id: 'eye-surgeon',
+    name: 'Eye Surgery Center Website',
+    description: 'Advanced eye care website with vision simulator, surgery info, and patient education',
+    category: 'Healthcare',
+    industry: 'Ophthalmology',
+    targetRole: 'Eye Surgeon',
+    features: [
+      'Vision simulator',
+      'LASIK calculator',
+      'Cataract information',
+      'Surgery videos',
+      'Insurance checker',
+      'Post-op care portal',
+      'Eye health library',
+      'Appointment scheduling',
+      'Referral network',
+      'Technology showcase'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Vision Simulator', 'Video Platform'],
+    estimatedTime: '4 weeks',
+    difficulty: 'advanced',
+    icon: '👁️',
+    prompts: {
+      initial: 'Build an eye surgery center website with vision tools and patient education',
+      customization: [
+        'What eye surgeries do you perform?',
+        'Do you offer LASIK?',
+        'Do you accept insurance?'
+      ]
+    }
+  },
+
+  // CARDIOLOGISTS
+  {
+    id: 'cardiology-practice',
+    name: 'Cardiology Practice Website',
+    description: 'Heart health website with risk assessment, patient monitoring, and educational resources',
+    category: 'Healthcare',
+    industry: 'Cardiology',
+    targetRole: 'Cardiologist',
+    features: [
+      'Heart risk calculator',
+      'Patient monitoring portal',
+      'Test results access',
+      'Appointment scheduling',
+      'Medication tracker',
+      'Diet planning tools',
+      'Exercise guidelines',
+      'Emergency protocols',
+      'Research participation',
+      'Telemedicine options'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Health APIs', 'Telemedicine'],
+    estimatedTime: '4 weeks',
+    difficulty: 'advanced',
+    icon: '❤️',
+    prompts: {
+      initial: 'Create a cardiology website with patient monitoring and risk assessment',
+      customization: [
+        'Do you offer interventional procedures?',
+        'Do you have cardiac rehab programs?',
+        'Do you need remote monitoring?'
+      ]
+    }
+  },
+
+  // PSYCHIATRISTS
+  {
+    id: 'psychiatry-practice',
+    name: 'Psychiatry Practice Website',
+    description: 'Confidential psychiatry website with secure messaging, teletherapy, and patient resources',
+    category: 'Healthcare',
+    industry: 'Mental Health',
+    targetRole: 'Psychiatrist',
+    features: [
+      'Secure patient portal',
+      'Teletherapy platform',
+      'Appointment scheduling',
+      'Prescription management',
+      'Mental health screening',
+      'Crisis resources',
+      'Group therapy calendar',
+      'Insurance verification',
+      'Patient forms',
+      'Resource library'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Video API', 'HIPAA Compliance'],
+    estimatedTime: '4 weeks',
+    difficulty: 'advanced',
+    icon: '🧠',
+    prompts: {
+      initial: 'Build a psychiatry website with teletherapy and secure communication',
+      customization: [
+        'What conditions do you treat?',
+        'Do you offer teletherapy?',
+        'Do you prescribe medications?'
+      ]
+    }
+  },
+
+  // INVESTMENT BANKERS
+  {
+    id: 'investment-banking-firm',
+    name: 'Investment Banking Platform',
+    description: 'Elite investment banking website with deal showcase, market insights, and client portal',
+    category: 'Financial Services',
+    industry: 'Investment Banking',
+    targetRole: 'Investment Banker',
+    features: [
+      'Deal tombstone gallery',
+      'Market research portal',
+      'Transaction tracker',
+      'Industry reports',
+      'Team expertise matrix',
+      'Client portal',
+      'Pitch deck library',
+      'League table rankings',
+      'Press releases',
+      'Career opportunities'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Financial APIs', 'Data Room'],
+    estimatedTime: '5 weeks',
+    difficulty: 'advanced',
+    icon: '💼',
+    prompts: {
+      initial: 'Create an investment banking website with deal showcase and client portal',
+      customization: [
+        'What sectors do you focus on?',
+        'What size deals do you handle?',
+        'Do you need pitch deck features?'
+      ]
+    }
+  },
+
+  // HEDGE FUND MANAGERS
+  {
+    id: 'hedge-fund',
+    name: 'Hedge Fund Investor Portal',
+    description: 'Sophisticated hedge fund website with performance analytics, investor portal, and compliance',
+    category: 'Financial Services',
+    industry: 'Hedge Funds',
+    targetRole: 'Fund Manager',
+    features: [
+      'Performance dashboard',
+      'Investor portal',
+      'Fund documents vault',
+      'Subscription management',
+      'Redemption requests',
+      'Risk analytics',
+      'Compliance tracking',
+      'Quarterly reports',
+      'Limited partner access',
+      'Due diligence room'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Bloomberg API', 'Encryption'],
+    estimatedTime: '6 weeks',
+    difficulty: 'advanced',
+    icon: '📈',
+    prompts: {
+      initial: 'Build a hedge fund platform with investor portal and performance tracking',
+      customization: [
+        'What\'s your investment strategy?',
+        'What\'s your minimum investment?',
+        'Do you need K-1 distribution?'
+      ]
+    }
+  },
+
+  // VENTURE CAPITALISTS
+  {
+    id: 'venture-capital-firm',
+    name: 'VC Firm Portfolio Platform',
+    description: 'Modern VC website with portfolio showcase, founder resources, and pitch submission',
+    category: 'Financial Services',
+    industry: 'Venture Capital',
+    targetRole: 'VC Partner',
+    features: [
+      'Portfolio showcase',
+      'Pitch deck submission',
+      'Founder resources',
+      'Team profiles',
+      'Investment thesis',
+      'News and insights',
+      'Event calendar',
+      'Job board',
+      'LP portal',
+      'Exit announcements'
+    ],
+    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'CRM Integration', 'Analytics'],
+    estimatedTime: '4 weeks',
+    difficulty: 'intermediate',
+    icon: '🚀',
+    prompts: {
+      initial: 'Create a VC firm website with portfolio showcase and pitch submission',
+      customization: [
+        'What stages do you invest in?',
+        'What sectors do you focus on?',
+        'What\'s your typical check size?'
+      ]
+    }
   }
 ];
 
