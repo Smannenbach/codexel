@@ -5,7 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, FolderOpen, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, FolderOpen, Loader2, Search, Globe, User, Store, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Project } from '@shared/schema';
 
@@ -16,6 +18,37 @@ interface ProjectSidebarProps {
   onCreateProject: (name: string, description: string) => Promise<void>;
   isLoading: boolean;
 }
+
+const projectTemplates = [
+  {
+    id: 'business-website',
+    name: 'Business Website',
+    description: 'Professional website for your business with contact forms, services, and about pages',
+    icon: Briefcase,
+    color: 'bg-blue-500'
+  },
+  {
+    id: 'personal-website',
+    name: 'Personal Website',
+    description: 'Portfolio or personal site with blog, projects, and resume sections',
+    icon: User,
+    color: 'bg-green-500'
+  },
+  {
+    id: 'ecommerce',
+    name: 'E-commerce Store',
+    description: 'Online store with product catalog, shopping cart, and payment integration',
+    icon: Store,
+    color: 'bg-purple-500'
+  },
+  {
+    id: 'web-app',
+    name: 'Web Application',
+    description: 'Custom web application with user authentication and database',
+    icon: Globe,
+    color: 'bg-orange-500'
+  }
+];
 
 export function ProjectSidebar({
   projects,
@@ -28,6 +61,8 @@ export function ProjectSidebar({
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
@@ -38,10 +73,22 @@ export function ProjectSidebar({
       setIsCreateDialogOpen(false);
       setNewProjectName('');
       setNewProjectDescription('');
+      setSelectedTemplate(null);
     } finally {
       setIsCreating(false);
     }
   };
+
+  const handleTemplateSelect = (template: typeof projectTemplates[0]) => {
+    setSelectedTemplate(template.id);
+    setNewProjectName(template.name);
+    setNewProjectDescription(template.description);
+  };
+
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col h-full bg-muted/50">
@@ -56,21 +103,33 @@ export function ProjectSidebar({
         </Button>
       </div>
 
+      <div className="p-4 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : projects.length === 0 ? (
+          ) : filteredProjects.length === 0 ? (
             <div className="text-center py-8 px-4">
               <FolderOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No projects yet. Create your first one!
+                {searchTerm ? 'No projects match your search.' : 'No projects yet. Create your first one!'}
               </p>
             </div>
           ) : (
-            projects.map((project) => (
+            filteredProjects.map((project) => (
               <button
                 key={project.id}
                 onClick={() => onSelectProject(project.id)}
@@ -103,23 +162,53 @@ export function ProjectSidebar({
       </ScrollArea>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label>Choose a Template</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {projectTemplates.map((template) => (
+                  <Card
+                    key={template.id}
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md",
+                      selectedTemplate === template.id && "ring-2 ring-primary"
+                    )}
+                    onClick={() => handleTemplateSelect(template)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("p-2 rounded-md text-white", template.color)}>
+                          <template.icon className="w-4 h-4" />
+                        </div>
+                        <CardTitle className="text-sm">{template.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="text-xs leading-relaxed">
+                        {template.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="project-name">Project Name</Label>
               <Input
                 id="project-name"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="My Awesome App"
+                placeholder="My Awesome Project"
                 disabled={isCreating}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-description">Description (Optional)</Label>
+              <Label htmlFor="project-description">Description</Label>
               <Textarea
                 id="project-description"
                 value={newProjectDescription}
@@ -133,7 +222,12 @@ export function ProjectSidebar({
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
+              onClick={() => {
+                setIsCreateDialogOpen(false);
+                setSelectedTemplate(null);
+                setNewProjectName('');
+                setNewProjectDescription('');
+              }}
               disabled={isCreating}
             >
               Cancel

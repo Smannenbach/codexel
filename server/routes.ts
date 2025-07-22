@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all projects
   app.get("/api/projects", async (req, res) => {
     try {
-      const projects = await storage.getAllProjects();
+      const projects = await storage.getProjects("1");
       res.json(projects);
     } catch (error) {
       console.error("Get projects error:", error);
