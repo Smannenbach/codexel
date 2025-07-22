@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 import { projectTemplates, type ProjectTemplate } from '@shared/templates';
 import { marketingStacks, stackBundles, type MarketingStack } from '@shared/marketing-stacks';
+import AISalesAgent from './AISalesAgent';
 
 interface TemplateSelectorProps {
   onComplete: (template: ProjectTemplate, selectedStacks: string[], config: TemplateConfig) => void;
@@ -95,6 +96,7 @@ export default function TemplateSelector({ onComplete }: TemplateSelectorProps) 
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
   const [selectedBundle, setSelectedBundle] = useState<string>('custom');
+  const [showAISalesAgent, setShowAISalesAgent] = useState(false);
   const [config, setConfig] = useState<TemplateConfig>({
     states: [],
     businessName: '',
@@ -142,6 +144,25 @@ export default function TemplateSelector({ onComplete }: TemplateSelectorProps) 
       onComplete(selectedTemplate, selectedStacks, config);
     }
   };
+
+  // Show AI Sales Agent if triggered
+  if (showAISalesAgent && selectedTemplate) {
+    return (
+      <AISalesAgent 
+        selectedTemplate={selectedTemplate}
+        availableStacks={marketingStacks}
+        onStackSelection={(stacks) => {
+          setSelectedStacks(stacks);
+          setShowAISalesAgent(false);
+          setStep(3);
+        }}
+        onComplete={() => {
+          setShowAISalesAgent(false);
+          handleComplete();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6">
@@ -319,12 +340,24 @@ export default function TemplateSelector({ onComplete }: TemplateSelectorProps) 
                     <Button variant="outline" onClick={() => setStep(1)}>
                       Back
                     </Button>
-                    <Button 
-                      onClick={() => setStep(3)}
-                      disabled={!config.businessName || config.states.length === 0}
-                    >
-                      Continue to AI Marketing
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        onClick={() => setStep(3)}
+                        disabled={!config.businessName || config.states.length === 0}
+                      >
+                        Skip AI Assistant
+                      </Button>
+                      <Button 
+                        onClick={() => setShowAISalesAgent(true)}
+                        disabled={!config.businessName || config.states.length === 0}
+                        className="gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Talk to AI Sales Assistant
+                        <Badge variant="secondary" className="ml-1">Recommended</Badge>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
