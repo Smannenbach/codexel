@@ -4,6 +4,11 @@ import { storage } from "./storage";
 import { aiService } from "./services/ai-service";
 import { AgentOrchestrator } from "./services/ai-orchestrator";
 import type { InsertMessage, InsertProject, InsertAgent } from "@shared/schema";
+import { aiContentGenerator } from "./services/ai-content-generator";
+import { blogPosts, marketingCampaigns } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { db } from "./db";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint
@@ -277,6 +282,108 @@ What specific type of website are you looking to create? (e.g., business, portfo
   // Deploy routes
   const deployRoutes = await import('./routes/deploy');
   app.use(deployRoutes.default);
+
+  // Blog API endpoints
+  app.post('/api/blog/generate', async (req, res) => {
+    try {
+      const generateSchema = z.object({
+        projectId: z.number(),
+        practiceArea: z.string(),
+        targetKeywords: z.array(z.string()),
+        tone: z.enum(['professional', 'friendly', 'authoritative']),
+        length: z.enum(['short', 'medium', 'long']),
+        includeLocalSEO: z.boolean(),
+        state: z.string().optional(),
+        city: z.string().optional(),
+      });
+
+      const config = generateSchema.parse(req.body);
+      
+      // Generate content using AI
+      const generatedContent = await aiContentGenerator.generateBlogPost(config);
+      
+      // Save to database
+      const [blogPost] = await db.insert(blogPosts).values({
+        projectId: config.projectId,
+        title: generatedContent.title,
+        slug: generatedContent.slug,
+        content: generatedContent.content,
+        excerpt: generatedContent.excerpt,
+        category: generatedContent.category,
+        keywords: generatedContent.keywords,
+        metaDescription: generatedContent.metaDescription,
+        readTime: generatedContent.readTime,
+        status: 'draft',
+      }).returning();
+
+      res.json(blogPost);
+    } catch (error) {
+      console.error('Error generating blog post:', error);
+      res.status(500).json({ 
+        message: 'Failed to generate blog post', 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Get blog posts for a project
+  app.get('/api/blog/project/:projectId', async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const posts = await db
+        .select()
+        .from(blogPosts)
+        .where(eq(blogPosts.projectId, projectId));
+      
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch blog posts' });
+    }
+  });
+
+  // Marketing API endpoints
+  app.post('/api/marketing/social/generate', async (req, res) => {
+    try {
+      const socialSchema = z.object({
+        topic: z.string(),
+        platform: z.enum(['facebook', 'instagram', 'linkedin', 'twitter']),
+        includeHashtags: z.boolean().optional(),
+      });
+
+      const { topic, platform, includeHashtags = true } = socialSchema.parse(req.body);
+      
+      const post = await aiContentGenerator.generateSocialMediaPost(topic, platform, includeHashtags);
+      
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to generate social media post' });
+    }
+  });
+
+  app.post('/api/marketing/email/generate', async (req, res) => {
+    try {
+      const emailSchema = z.object({
+        campaignType: z.enum(['welcome', 'newsletter', 'case-update', 'follow-up']),
+        practiceArea: z.string(),
+        personalData: z.object({
+          name: z.string().optional(),
+          caseType: z.string().optional(),
+        }).optional(),
+      });
+
+      const data = emailSchema.parse(req.body);
+      
+      const email = await aiContentGenerator.generateEmailCampaign(
+        data.campaignType,
+        data.practiceArea,
+        data.personalData
+      );
+      
+      res.json(email);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to generate email campaign' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

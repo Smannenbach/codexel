@@ -229,3 +229,46 @@ export type HiveMindEntry = typeof hiveMindEntries.$inferSelect;
 export type InsertHiveMindEntry = typeof hiveMindEntries.$inferInsert;
 export type QueuedPrompt = typeof promptQueue.$inferSelect;
 export type InsertQueuedPrompt = typeof promptQueue.$inferInsert;
+
+// Blog posts table for auto-generated content
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  category: varchar("category", { length: 100 }),
+  keywords: text("keywords").array(),
+  metaDescription: text("meta_description"),
+  publishedAt: timestamp("published_at"),
+  status: varchar("status", { length: 50 }).default("draft"),
+  readTime: integer("read_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+// Marketing campaigns table
+export const marketingCampaigns = pgTable("marketing_campaigns", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // email, social, blog, ad
+  status: varchar("status", { length: 50 }).default("active"),
+  config: jsonb("config"), // Campaign configuration
+  metrics: jsonb("metrics"), // Performance metrics
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type MarketingCampaign = typeof marketingCampaigns.$inferSelect;
+export type InsertMarketingCampaign = typeof marketingCampaigns.$inferInsert;

@@ -23,7 +23,7 @@ import {
   Clock,
   Star
 } from 'lucide-react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { 
   projectTemplates, 
@@ -52,7 +52,7 @@ export default function TemplatesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const categories = getCategories();
   
@@ -71,7 +71,7 @@ export default function TemplatesPage() {
 
   const handleUseTemplate = (template: ProjectTemplate) => {
     // Navigate to workspace with template
-    navigate(`/workspace?template=${template.id}`);
+    setLocation(`/workspace?template=${template.id}`);
   };
 
   return (

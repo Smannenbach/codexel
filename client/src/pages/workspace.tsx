@@ -2,15 +2,28 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { ProjectSidebar } from '@/components/workspace/ProjectSidebar';
+import TemplateSetup from '@/components/workspace/TemplateSetup';
+import MarketingDashboard from '@/components/workspace/MarketingDashboard';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { Project, Agent, Message, ChecklistItem } from '@shared/schema';
 
 export default function Workspace() {
-  const [, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [showTemplateSetup, setShowTemplateSetup] = useState(false);
+  const [activeView, setActiveView] = useState<'chat' | 'marketing'>('chat');
+  
+  // Check if template parameter is in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const templateId = params.get('template');
+    if (templateId) {
+      setShowTemplateSetup(true);
+    }
+  }, [location]);
 
   // Fetch projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
