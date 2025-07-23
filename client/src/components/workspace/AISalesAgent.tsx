@@ -27,8 +27,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { MarketingStack } from '@shared/marketing-stacks';
 import Avatar3D from './Avatar3D';
 import VoiceCloneSetup from './VoiceCloneSetup';
-import VoiceControls from './VoiceControls';
-import EmergencyStopButton from './EmergencyStopButton';
 import { speakWithVoice } from "@/utils/voiceUtils";
 import { AI_MODELS } from '@/lib/ai-models';
 import { apiRequest } from '@/lib/queryClient';
@@ -483,18 +481,7 @@ Your AI-powered business is going to be unstoppable! 🚀`
       <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
       
-      {/* Emergency Stop Button - Always Visible */}
-      <EmergencyStopButton onClick={stopAllAudio} />
-      
-      {/* Voice Controls - Hidden for clean UI */}
-      <div className="hidden">
-        <VoiceControls 
-          isAITalking={isAITalking}
-          onMute={handleMute}
-          onUnmute={handleUnmute}
-          onStopAll={stopAllAudio}
-        />
-      </div>
+
       
       <div className="relative z-10 p-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
