@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { registerVoiceRoutes } from './routes/voice';
 import multer from "multer";
 import { storage } from "./storage";
 import { voiceCloneService } from "./services/voiceCloning";
@@ -19,6 +20,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register voice cloning routes
+  registerVoiceRoutes(app);
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {

@@ -26,6 +26,7 @@ import Avatar3D from './Avatar3D';
 import VoiceCloneSetup from './VoiceCloneSetup';
 import VoiceControls from './VoiceControls';
 import EmergencyStopButton from './EmergencyStopButton';
+import { speakWithVoice } from "@/utils/voiceUtils";
 
 interface AISalesAgentProps {
   selectedTemplate: any;
@@ -100,10 +101,8 @@ export default function AISalesAgent({
       setCustomVoiceId(savedCustomVoiceId);
     }
     
-    // Check if we need to show voice setup
-    if (!savedCustomVoiceId) {
-      setShowVoiceSetup(true);
-    }
+    // Always show voice setup initially for better user experience
+    setShowVoiceSetup(true);
 
     const initialMessage: AgentMessage = {
       id: '1',

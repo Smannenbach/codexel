@@ -11,6 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { audioProcessor } from '@/utils/audioProcessing';
 import NoiseReductionIndicator from './NoiseReductionIndicator';
+import { cloneVoice } from '@/utils/voiceUtils';
 
 interface VoiceCloneSetupProps {
   onVoiceCloned: (voiceId: string) => void;
@@ -153,13 +154,8 @@ export default function VoiceCloneSetup({ onVoiceCloned, onClose, className = ''
         setProgress(prev => Math.min(prev + 10, 90));
       }, 500);
 
-      const formData = new FormData();
-      formData.append('audio', recording.audioBlob, 'voice-sample.wav');
-      formData.append('name', voiceName);
-      formData.append('description', 'Custom voice clone created with Codexel.ai');
-
-      const response = await apiRequest('POST', '/api/voice/clone', formData);
-      const result = await response.json();
+      // Use the voice cloning utility
+      const result = await cloneVoice(recording.audioBlob, voiceName);
 
       clearInterval(progressInterval);
       setProgress(100);
