@@ -17,7 +17,8 @@ import {
   Zap,
   DollarSign,
   User,
-  Bot
+  Bot,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -517,31 +518,31 @@ Your AI-powered business is going to be unstoppable! 🚀`
             </div>
           </div>
 
-        {/* Voice Setup Modal */}
-        {showVoiceSetup && (
-          <Card className="fixed inset-4 z-50 bg-background/95 backdrop-blur-sm border shadow-2xl">
-            <CardContent className="p-6 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Complete Your Voice Setup</h2>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowVoiceSetup(false)}
-                >
-                  Skip for Now
-                </Button>
-              </div>
-              <VoiceCloneSetup 
-                onVoiceCloned={(voiceId) => {
-                  setCustomVoiceId(voiceId);
-                  localStorage.setItem('codexel_custom_voice_id', voiceId);
-                  setShowVoiceSetup(false);
-                  addAgentMessage("🎉 Perfect! I can now speak with your actual voice! This is revolutionary - your clients will hear YOUR voice speaking to them. This creates unprecedented trust and connection!");
-                }}
-              />
-            </CardContent>
-          </Card>
-        )}
+          {/* Voice Setup Modal */}
+          {showVoiceSetup && (
+            <Card className="fixed inset-4 z-50 bg-background/95 backdrop-blur-sm border shadow-2xl">
+              <CardContent className="p-6 max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Complete Your Voice Setup</h2>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowVoiceSetup(false)}
+                  >
+                    Skip for Now
+                  </Button>
+                </div>
+                <VoiceCloneSetup 
+                  onVoiceCloned={(voiceId) => {
+                    setCustomVoiceId(voiceId);
+                    localStorage.setItem('codexel_custom_voice_id', voiceId);
+                    setShowVoiceSetup(false);
+                    addAgentMessage("🎉 Perfect! I can now speak with your actual voice! This is revolutionary - your clients will hear YOUR voice speaking to them. This creates unprecedented trust and connection!");
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Chat Interface - Modern Glassmorphism */}
           <div className="h-[700px] backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
@@ -572,6 +573,7 @@ Your AI-powered business is going to be unstoppable! 🚀`
                 </Badge>
               </div>
             </div>
+          </div>
           
             <ScrollArea ref={scrollRef} className="flex-1 p-4">
             <div className="space-y-4">
@@ -703,10 +705,10 @@ Your AI-powered business is going to be unstoppable! 🚀`
                             </div>
                             <div className="text-right">
                               <p className="text-sm text-gray-500 line-through">
-                                ${stack.originalPrice}/mo
+                                ${stack.price * 2}/mo
                               </p>
                               <p className="text-lg font-bold text-emerald-400">
-                                ${stack.bundlePrice}/mo
+                                ${stack.price}/mo
                               </p>
                             </div>
                           </div>
@@ -767,6 +769,7 @@ Your AI-powered business is going to be unstoppable! 🚀`
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
