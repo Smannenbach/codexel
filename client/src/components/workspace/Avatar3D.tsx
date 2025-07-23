@@ -14,20 +14,22 @@ interface Avatar3DProps {
   avatarUrl?: string;
 }
 
-// Simple CSS-based 3D Avatar (no WebGL dependencies)
+// Enhanced 3D Avatar with photo support
 function SimpleAvatar({ isAnimating, avatarImage }: { isAnimating: boolean; avatarImage?: string }) {
   return (
     <div className="relative w-64 h-64 mx-auto">
       {/* Face */}
       <div 
-        className={`w-48 h-48 mx-auto rounded-full transition-all duration-200 ${
-          isAnimating ? 'animate-pulse scale-105' : 'scale-100'
-        }`}
+        className={`w-48 h-48 mx-auto rounded-full transition-all duration-300 ${
+          isAnimating ? 'scale-105 shadow-2xl' : 'scale-100 shadow-xl'
+        } ${avatarImage ? 'border-4 border-primary' : ''}`}
         style={{
           background: avatarImage 
             ? `url(${avatarImage}) center/cover` 
             : 'linear-gradient(145deg, #fdbcb4, #f1a898)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          boxShadow: isAnimating 
+            ? '0 15px 40px rgba(0,0,0,0.4), 0 0 30px rgba(59, 130, 246, 0.5)' 
+            : '0 10px 30px rgba(0,0,0,0.3)'
         }}
       >
         {!avatarImage && (
@@ -36,17 +38,22 @@ function SimpleAvatar({ isAnimating, avatarImage }: { isAnimating: boolean; avat
             <div className="absolute top-16 left-12 w-4 h-4 bg-slate-800 rounded-full" />
             <div className="absolute top-16 right-12 w-4 h-4 bg-slate-800 rounded-full" />
             
-            {/* Pupils */}
-            <div className="absolute top-18 left-14 w-2 h-2 bg-blue-500 rounded-full" />
-            <div className="absolute top-18 right-14 w-2 h-2 bg-blue-500 rounded-full" />
+            {/* Pupils with animation */}
+            <div className={`absolute top-18 left-14 w-2 h-2 bg-blue-500 rounded-full transition-all ${isAnimating ? 'scale-110' : ''}`} />
+            <div className={`absolute top-18 right-14 w-2 h-2 bg-blue-500 rounded-full transition-all ${isAnimating ? 'scale-110' : ''}`} />
             
-            {/* Mouth */}
+            {/* Animated Mouth */}
             <div 
-              className={`absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-red-800 rounded-full transition-all duration-150 ${
-                isAnimating ? 'w-8 h-6' : 'w-6 h-3'
+              className={`absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-red-800 rounded-full transition-all duration-200 ${
+                isAnimating ? 'w-8 h-6 animate-pulse' : 'w-6 h-3'
               }`}
             />
           </>
+        )}
+
+        {/* Speaking Indicator Overlay for Custom Avatar */}
+        {avatarImage && isAnimating && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-pulse" />
         )}
       </div>
       

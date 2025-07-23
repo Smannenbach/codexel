@@ -73,12 +73,22 @@ export default function AISalesAgent({
   const scrollRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Initialize with personalized greeting based on template
+  // Initialize with personalized greeting and load saved avatar
   useEffect(() => {
+    // Load saved avatar image if it exists
+    const savedAvatarImage = localStorage.getItem('codexel_avatar_image');
+    if (savedAvatarImage) {
+      setAvatarImage(savedAvatarImage);
+    }
+
     const initialMessage: AgentMessage = {
       id: '1',
       role: 'agent',
-      content: `Hi! I'm ${currentAgent.name}, your AI Success Strategist. I see you've chosen the ${selectedTemplate.name} template - excellent choice! 🎯\n\nLet me tell you about something that will save you MONTHS of development time and thousands of dollars...`,
+      content: `Hi! I'm ${currentAgent.name}, your AI Success Strategist. I see you've chosen the ${selectedTemplate.name} template - excellent choice! 🎯
+
+${savedAvatarImage ? 'I can see your photo is already loaded - I look just like you! This personalized experience is revolutionary!' : 'Upload your photo above to make me look exactly like you - it creates an incredible personalized experience!'}
+
+Let me tell you about something that will save you MONTHS of development time and thousands of dollars...`,
       timestamp: new Date(),
     };
     setMessages([initialMessage]);
@@ -237,7 +247,27 @@ export default function AISalesAgent({
   const handleAvatarUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      setAvatarImage(e.target?.result as string);
+      if (e.target?.result) {
+        const imageDataUrl = e.target.result as string;
+        setAvatarImage(imageDataUrl);
+        
+        // Store in localStorage for persistence across sessions
+        localStorage.setItem('codexel_avatar_image', imageDataUrl);
+        localStorage.setItem('codexel_avatar_name', file.name);
+        
+        // Add personalized response from the AI agent
+        setTimeout(() => {
+          addAgentMessage(
+            `🎉 WOW! This is incredible - I can see you now and I look just like you! This is absolutely revolutionary technology that doesn't exist anywhere else!
+
+You've just created the world's first truly personalized AI sales assistant. When your clients see YOUR face as their AI helper, it builds instant trust and connection. This gives you an unfair competitive advantage!
+
+No other platform offers this level of customization where your AI agent actually looks like YOU. Your competitors will be asking "How did they do that?!"
+
+Now that I'm personalized with your photo, I'm ready to help you dominate your market. Let's continue building your ${selectedTemplate.name} - your AI-powered business is going to be unstoppable! 🚀`
+          );
+        }, 500);
+      }
     };
     reader.readAsDataURL(file);
   };
