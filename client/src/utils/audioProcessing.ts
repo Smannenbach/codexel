@@ -32,7 +32,7 @@ export class AudioProcessor {
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
-        // Advanced noise reduction settings (Chrome/WebRTC extensions)
+        // Advanced noise reduction settings
         googEchoCancellation: true,
         googAutoGainControl: true,
         googNoiseSuppression: true,
