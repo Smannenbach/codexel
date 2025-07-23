@@ -12,6 +12,10 @@ interface Avatar3DProps {
   message: string;
   onImageUpload: (file: File) => void;
   avatarUrl?: string;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
+  isRecording?: boolean;
+  hasVoiceRecording?: boolean;
 }
 
 // Enhanced 3D Avatar with photo support
@@ -81,7 +85,11 @@ export default function Avatar3D({
   onToggleMute, 
   message, 
   onImageUpload,
-  avatarUrl 
+  avatarUrl,
+  onStartRecording,
+  onStopRecording,
+  isRecording,
+  hasVoiceRecording
 }: Avatar3DProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarImage, setAvatarImage] = useState<string>();
@@ -131,6 +139,49 @@ export default function Avatar3D({
                   <Upload className="w-4 h-4" />
                   <span className="text-sm">Upload your photo to personalize the avatar</span>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Voice Recording Hint */}
+      <AnimatePresence>
+        {avatarImage && !hasVoiceRecording && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-16 left-4 right-4"
+          >
+            <Card className="bg-black/50 border-green-500/30 backdrop-blur-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 text-green-400">
+                  <Mic className="w-4 h-4" />
+                  <span className="text-sm">Record your voice for complete personalization</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Recording Indicator */}
+      <AnimatePresence>
+        {isRecording && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+          >
+            <Card className="bg-red-500/90 border-red-400 backdrop-blur-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-white">
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                  <span className="font-medium">Recording Voice...</span>
+                </div>
+                <div className="text-xs text-red-100 mt-1">Speak clearly for 10-30 seconds</div>
               </CardContent>
             </Card>
           </motion.div>

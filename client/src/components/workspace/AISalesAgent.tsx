@@ -70,15 +70,22 @@ export default function AISalesAgent({
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
   const [currentAgent] = useState(AGENT_PERSONAS.emma);
   const [avatarImage, setAvatarImage] = useState<string>();
+  const [voiceRecording, setVoiceRecording] = useState<string>();
+  const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  // Initialize with personalized greeting and load saved avatar
+  // Initialize with personalized greeting and load saved avatar/voice
   useEffect(() => {
     // Load saved avatar image if it exists
     const savedAvatarImage = localStorage.getItem('codexel_avatar_image');
+    const savedVoiceRecording = localStorage.getItem('codexel_voice_recording');
     if (savedAvatarImage) {
       setAvatarImage(savedAvatarImage);
+    }
+    if (savedVoiceRecording) {
+      setVoiceRecording(savedVoiceRecording);
     }
 
     const initialMessage: AgentMessage = {
@@ -86,7 +93,7 @@ export default function AISalesAgent({
       role: 'agent',
       content: `Hi! I'm ${currentAgent.name}, your AI Success Strategist. I see you've chosen the ${selectedTemplate.name} template - excellent choice! 🎯
 
-${savedAvatarImage ? 'I can see your photo is already loaded - I look just like you! This personalized experience is revolutionary!' : 'Upload your photo above to make me look exactly like you - it creates an incredible personalized experience!'}
+${savedAvatarImage ? 'I can see your photo is already loaded - I look just like you!' : 'Upload your photo above to make me look exactly like you!'} ${savedVoiceRecording ? 'And I can speak with YOUR actual voice! This is the ultimate personalized AI experience!' : 'Record a voice sample so I can speak with your voice too - ultimate personalization!'}
 
 Let me tell you about something that will save you MONTHS of development time and thousands of dollars...`,
       timestamp: new Date(),
@@ -262,14 +269,81 @@ Let me tell you about something that will save you MONTHS of development time an
 
 You've just created the world's first truly personalized AI sales assistant. When your clients see YOUR face as their AI helper, it builds instant trust and connection. This gives you an unfair competitive advantage!
 
-No other platform offers this level of customization where your AI agent actually looks like YOU. Your competitors will be asking "How did they do that?!"
+${voiceRecording ? 'And since I already have your voice recording, I can speak exactly like you too! Complete personalization!' : 'Now record your voice so I can speak exactly like you - complete visual and audio personalization!'}
 
-Now that I'm personalized with your photo, I'm ready to help you dominate your market. Let's continue building your ${selectedTemplate.name} - your AI-powered business is going to be unstoppable! 🚀`
+No other platform offers this level of customization where your AI agent looks AND sounds like YOU. Your competitors will be asking "How did they do that?!"
+
+Your AI-powered business is going to be unstoppable! 🚀`
           );
         }, 500);
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.addEventListener('dataavailable', event => {
+        audioChunks.push(event.data);
+      });
+
+      mediaRecorder.addEventListener('stop', () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setVoiceRecording(audioUrl);
+        
+        // Convert to base64 and store
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Audio = reader.result as string;
+          localStorage.setItem('codexel_voice_recording', base64Audio);
+        };
+        reader.readAsDataURL(audioBlob);
+
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+
+        // AI responds with excitement
+        setTimeout(() => {
+          addAgentMessage(
+            `🎤 AMAZING! I've captured your voice! This is groundbreaking - I can now speak with YOUR actual voice while looking like you!
+
+This creates the ultimate personalized AI experience. When your clients interact with me, they're seeing your face and hearing your voice. This builds unprecedented trust and connection!
+
+You've just created something that doesn't exist anywhere else - a completely personalized AI clone that represents YOU. This is the future of customer engagement!
+
+${avatarImage ? 'With both your photo and voice, you now have the most advanced personalized AI assistant possible!' : 'Upload your photo next to complete the full personalization!'}`
+          );
+        }, 500);
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+
+      // Auto-stop after 30 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          setIsRecording(false);
+        }
+      }, 30000);
+
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      addAgentMessage('Sorry, I need microphone access to record your voice. Please allow microphone permissions and try again.');
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
   };
 
   // Auto-scroll to bottom
