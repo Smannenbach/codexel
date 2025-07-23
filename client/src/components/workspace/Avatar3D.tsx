@@ -201,6 +201,20 @@ export default function Avatar3D({
             Upload Photo
           </Button>
           
+          {/* Voice Recording Button */}
+          <Button
+            size="sm"
+            variant={isRecording ? "destructive" : hasVoiceRecording ? "default" : "outline"}
+            className={`bg-black/50 backdrop-blur-sm ${
+              isRecording ? 'border-red-500/50 animate-pulse' : 
+              hasVoiceRecording ? 'border-green-500/50' : 'border-purple-500/30'
+            }`}
+            onClick={isRecording ? onStopRecording : onStartRecording}
+          >
+            <Mic className="w-4 h-4 mr-1" />
+            {isRecording ? 'Stop' : hasVoiceRecording ? 'Re-record' : 'Record Voice'}
+          </Button>
+          
           <Button
             size="sm"
             variant={isMuted ? "destructive" : "default"}

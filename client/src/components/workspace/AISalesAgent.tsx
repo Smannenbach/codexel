@@ -382,6 +382,10 @@ ${avatarImage ? 'With both your photo and voice, you now have the most advanced 
               message={messages[messages.length - 1]?.content || ''}
               onImageUpload={handleAvatarUpload}
               avatarUrl={avatarImage}
+              onStartRecording={startVoiceRecording}
+              onStopRecording={stopVoiceRecording}
+              isRecording={isRecording}
+              hasVoiceRecording={!!voiceRecording}
             />
           </CardContent>
         </Card>
