@@ -9,6 +9,8 @@ import { Mic, MicOff, Play, Square, Upload, Wand2, Check, X } from 'lucide-react
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { audioProcessor } from '@/utils/audioProcessing';
+import NoiseReductionIndicator from './NoiseReductionIndicator';
 
 interface VoiceCloneSetupProps {
   onVoiceCloned: (voiceId: string) => void;
@@ -33,6 +35,8 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
   const [progress, setProgress] = useState(0);
   const [voiceName, setVoiceName] = useState('My Custom Voice');
   const [step, setStep] = useState<'instructions' | 'recording' | 'processing' | 'complete'>('instructions');
+  const [audioLevels, setAudioLevels] = useState({ volume: 0, noise: 0, quality: 'poor' as const });
+  const [recordingQuality, setRecordingQuality] = useState<'excellent' | 'good' | 'fair' | 'poor'>('poor');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -49,17 +53,21 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (recording.audioUrl) URL.revokeObjectURL(recording.audioUrl);
+      // Cleanup audio processor when component unmounts
+      audioProcessor.cleanup();
     };
   }, [recording.audioUrl]);
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Use enhanced audio processing for noise reduction
+      const stream = await audioProcessor.getEnhancedMediaStream({
         audio: { 
-          sampleRate: 44100,
+          sampleRate: 48000,
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         }
       });
       
@@ -72,13 +80,16 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
         audioChunks.push(event.data);
       });
 
-      mediaRecorder.addEventListener('stop', () => {
+      mediaRecorder.addEventListener('stop', async () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // Process audio for enhanced quality and noise reduction
+        const processedBlob = await audioProcessor.processRecordedAudio(audioBlob);
+        const audioUrl = URL.createObjectURL(processedBlob);
         
         setRecording(prev => ({
           ...prev,
-          audioBlob,
+          audioBlob: processedBlob,
           audioUrl,
           isRecording: false
         }));
@@ -92,10 +103,15 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
       
       setRecording(prev => ({ ...prev, isRecording: true, duration: 0 }));
       
-      // Track duration
+      // Track duration and audio quality
       intervalRef.current = setInterval(() => {
         setRecording(prev => ({ ...prev, duration: prev.duration + 1 }));
-      }, 1000);
+        
+        // Update audio levels for real-time feedback
+        const levels = audioProcessor.getAudioLevels();
+        setAudioLevels(levels);
+        setRecordingQuality(levels.quality);
+      }, 100); // Update more frequently for responsive feedback
 
     } catch (error) {
       console.error('Error accessing microphone:', error);
@@ -182,7 +198,14 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
   };
 
   return (
-    <Card className={`w-full max-w-2xl mx-auto ${className}`}>
+    <div className="relative">
+      {/* Noise Reduction Indicator */}
+      <NoiseReductionIndicator 
+        isActive={recording.isRecording}
+        audioLevels={audioLevels}
+      />
+      
+      <Card className={`w-full max-w-2xl mx-auto ${className}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wand2 className="w-5 h-5 text-purple-500" />
@@ -221,12 +244,13 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
               className="space-y-4"
             >
               <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <h3 className="font-medium text-purple-400 mb-2">Recording Tips:</h3>
+                <h3 className="font-medium text-purple-400 mb-2">Advanced Noise Reduction Active:</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Find a quiet environment</li>
-                  <li>• Speak clearly and naturally</li>
-                  <li>• Record for 30-60 seconds</li>
-                  <li>• Read one of the sample texts below</li>
+                  <li>• AI-powered background noise elimination</li>
+                  <li>• Real-time audio enhancement and filtering</li>
+                  <li>• Dynamic range compression for clear voice</li>
+                  <li>• Automatic gain control and echo cancellation</li>
+                  <li>• Professional studio-quality processing</li>
                 </ul>
               </div>
 
@@ -263,7 +287,7 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
               exit={{ opacity: 0, y: -20 }}
               className="space-y-4"
             >
-              <div className="text-center">
+              <div className="text-center space-y-3">
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
                   recording.isRecording ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
                 }`}>
@@ -271,6 +295,42 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
                   {recording.isRecording ? 'Recording...' : 'Recording Complete'}
                   <Badge variant="secondary">{Math.floor(recording.duration / 60)}:{(recording.duration % 60).toString().padStart(2, '0')}</Badge>
                 </div>
+
+                {/* Real-time audio quality feedback */}
+                {recording.isRecording && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Volume:</span>
+                        <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 transition-all duration-100" 
+                            style={{ width: `${Math.min(audioLevels.volume * 2, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Noise:</span>
+                        <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-red-500 transition-all duration-100" 
+                            style={{ width: `${Math.min(audioLevels.noise * 3, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <Badge 
+                      className={`${
+                        recordingQuality === 'excellent' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                        recordingQuality === 'good' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                        recordingQuality === 'fair' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                        'bg-red-500/20 text-red-400 border-red-500/30'
+                      }`}
+                    >
+                      Quality: {recordingQuality}
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               {recording.isRecording ? (
@@ -344,5 +404,6 @@ export default function VoiceCloneSetup({ onVoiceCloned, className = '' }: Voice
         </AnimatePresence>
       </CardContent>
     </Card>
+    </div>
   );
 }
