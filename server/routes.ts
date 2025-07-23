@@ -106,7 +106,7 @@ What specific type of website are you looking to create? (e.g., business, portfo
       } else {
         // Call AI API with selected model
         try {
-          const aiApiResponse = await fetch(`http://localhost:${port}/api/ai/chat`, {
+          const aiApiResponse = await fetch(`http://localhost:5000/api/ai/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -211,7 +211,7 @@ What specific type of website are you looking to create? (e.g., business, portfo
   // Get all projects
   app.get("/api/projects", async (req, res) => {
     try {
-      const projects = await storage.getProjects("1");
+      const projects = await storage.getProjects(1);
       res.json(projects);
     } catch (error) {
       console.error("Get projects error:", error);

@@ -134,7 +134,7 @@ Let me tell you about something that will save you MONTHS of development time an
     // Use custom voice clone if available
     if (customVoiceId) {
       try {
-        const response = await fetch('/api/voice/speak', {
+        const response = await fetch('/api/voice/synthesize', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ Let me tell you about something that will save you MONTHS of development time an
       
       // Speak the response if voice is enabled
       if (voiceEnabled && !isMuted) {
-        speakText(aiResponse.response);
+        speakMessage(aiResponse.response);
       }
     } catch (error) {
       console.error('AI chat error:', error);
