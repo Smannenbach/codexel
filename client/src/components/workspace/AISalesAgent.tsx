@@ -453,33 +453,45 @@ Your AI-powered business is going to be unstoppable! 🚀`
   }, [messages]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+      
       {/* Emergency Stop Button - Always Visible */}
       <EmergencyStopButton onClick={stopAllAudio} />
       
-      {/* Voice Controls - Simplified without duplicate stop button */}
-      <VoiceControls 
-        isAITalking={isAITalking}
-        onMute={handleMute}
-        onUnmute={handleUnmute}
-        onStopAll={stopAllAudio}
-      />
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 3D Avatar Interface */}
-        <Card className="h-[600px]">
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">AI Sales Agent</CardTitle>
-                <CardDescription>Personalized 3D Avatar</CardDescription>
+      {/* Voice Controls - Hidden for clean UI */}
+      <div className="hidden">
+        <VoiceControls 
+          isAITalking={isAITalking}
+          onMute={handleMute}
+          onUnmute={handleUnmute}
+          onStopAll={stopAllAudio}
+        />
+      </div>
+      
+      <div className="relative z-10 p-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 3D Avatar Interface - Modern Glassmorphism */}
+          <div className="h-[700px] backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">AI Sales Agent</h2>
+                  <p className="text-sm text-gray-400 mt-1">Your Personalized AI Assistant</p>
+                </div>
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 animate-pulse">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+                    Live
+                  </div>
+                </Badge>
               </div>
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                Live
-              </Badge>
             </div>
-          </CardHeader>
-          <CardContent className="p-0 h-[calc(100%-80px)]">
-            <Avatar3D
+            <div className="h-[calc(100%-88px)]">
+              <Avatar3D
               isSpeaking={isSpeaking}
               isMuted={!voiceEnabled}
               onToggleMute={() => {
