@@ -253,6 +253,47 @@ export const blogPosts = pgTable("blog_posts", {
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
 
+// Workspace Layouts table
+export const workspaceLayouts = pgTable('workspace_layouts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  businessType: varchar('business_type', { length: 100 }).notNull(),
+  category: varchar('category', { length: 100 }).notNull(),
+  configuration: jsonb('configuration').notNull(), // Panel sizes, positions, settings
+  preview: text('preview'), // Base64 screenshot
+  isPublic: boolean('is_public').default(false),
+  downloads: integer('downloads').default(0),
+  rating: real('rating').default(0),
+  tags: text('tags').array(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+}, (table) => [
+  index('layouts_business_type_idx').on(table.businessType),
+  index('layouts_category_idx').on(table.category),
+  index('layouts_public_idx').on(table.isPublic),
+  index('layouts_downloads_idx').on(table.downloads),
+]);
+
+// Layout ratings table
+export const layoutRatings = pgTable('layout_ratings', {
+  id: serial('id').primaryKey(),
+  layoutId: integer('layout_id').notNull().references(() => workspaceLayouts.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  rating: integer('rating').notNull(), // 1-5 stars
+  comment: text('comment'),
+  createdAt: timestamp('created_at').defaultNow()
+}, (table) => [
+  index('ratings_layout_idx').on(table.layoutId),
+  index('ratings_user_idx').on(table.userId),
+]);
+
+export type WorkspaceLayout = typeof workspaceLayouts.$inferSelect;
+export type InsertWorkspaceLayout = typeof workspaceLayouts.$inferInsert;
+export type LayoutRating = typeof layoutRatings.$inferSelect;
+export type InsertLayoutRating = typeof layoutRatings.$inferInsert;
+
 // Marketing campaigns table
 export const marketingCampaigns = pgTable("marketing_campaigns", {
   id: serial("id").primaryKey(),

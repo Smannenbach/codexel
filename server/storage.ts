@@ -1,7 +1,7 @@
 import { db } from './db';
-import { users, projects, agents, messages, checklistItems, projectAgents } from '@shared/schema';
-import { eq, desc } from 'drizzle-orm';
-import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem } from '@shared/schema';
+import { users, projects, agents, messages, checklistItems, projectAgents, workspaceLayouts, layoutRatings } from '@shared/schema';
+import { eq, desc, and, sql } from 'drizzle-orm';
+import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem, WorkspaceLayout, InsertWorkspaceLayout, LayoutRating, InsertLayoutRating } from '@shared/schema';
 
 export interface IStorage {
   // User operations
@@ -31,6 +31,18 @@ export interface IStorage {
 
   // Project-Agent association
   associateAgentWithProject(projectId: number, agentId: number): Promise<void>;
+
+  // Workspace Layout operations
+  getWorkspaceLayouts(filters?: { category?: string; isPublic?: boolean; userId?: number }): Promise<WorkspaceLayout[]>;
+  getWorkspaceLayout(id: number): Promise<WorkspaceLayout | undefined>;
+  createWorkspaceLayout(layout: InsertWorkspaceLayout): Promise<WorkspaceLayout>;
+  updateWorkspaceLayout(id: number, data: Partial<WorkspaceLayout>): Promise<void>;
+  incrementLayoutDownloads(id: number): Promise<void>;
+
+  // Layout Rating operations
+  createLayoutRating(rating: InsertLayoutRating): Promise<LayoutRating>;
+  getUserLayoutRating(layoutId: number, userId: number): Promise<LayoutRating | undefined>;
+  updateLayoutAverageRating(layoutId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
