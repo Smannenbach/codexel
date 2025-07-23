@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { MarketingStack } from '@shared/marketing-stacks';
+import Avatar3D from './Avatar3D';
 
 interface AISalesAgentProps {
   selectedTemplate: any;
@@ -68,6 +69,7 @@ export default function AISalesAgent({
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
   const [currentAgent] = useState(AGENT_PERSONAS.emma);
+  const [avatarImage, setAvatarImage] = useState<string>();
   const scrollRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -232,6 +234,14 @@ export default function AISalesAgent({
     return sum + (stack?.price || 0);
   }, 0);
 
+  const handleAvatarUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarImage(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -241,7 +251,37 @@ export default function AISalesAgent({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 3D Avatar Interface */}
+        <Card className="h-[600px]">
+          <CardHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">AI Sales Agent</CardTitle>
+                <CardDescription>Personalized 3D Avatar</CardDescription>
+              </div>
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                Live
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 h-[calc(100%-80px)]">
+            <Avatar3D
+              isSpeaking={isSpeaking}
+              isMuted={!voiceEnabled}
+              onToggleMute={() => {
+                setVoiceEnabled(!voiceEnabled);
+                if (voiceEnabled && synthRef.current) {
+                  speechSynthesis.cancel();
+                }
+              }}
+              message={messages[messages.length - 1]?.content || ''}
+              onImageUpload={handleAvatarUpload}
+              avatarUrl={avatarImage}
+            />
+          </CardContent>
+        </Card>
+
         {/* Chat Interface */}
         <Card className="h-[600px] flex flex-col">
           <CardHeader className="border-b">
