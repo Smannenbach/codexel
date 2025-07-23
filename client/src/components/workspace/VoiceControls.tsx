@@ -37,7 +37,7 @@ export default function VoiceControls({
 
   // Emergency mute function - immediately stops all AI audio
   const emergencyMute = () => {
-    console.log('Emergency mute activated!');
+    console.log('Emergency mute activated - clearing all audio!');
     
     // Stop all speech synthesis immediately
     if (window.speechSynthesis) {
