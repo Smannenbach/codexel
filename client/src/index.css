@@ -147,4 +147,45 @@
     backdrop-filter: blur(10px);
     @apply border border-white/10;
   }
+
+  /* Resizable panel handle styles for draggable column resize */
+  [data-panel-resize-handle-id] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  [data-panel-resize-handle-id]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 40px;
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  [data-panel-resize-handle-id]:hover::after {
+    opacity: 1;
+  }
+
+  [data-panel-resize-handle-id]:active {
+    background-color: rgba(139, 92, 246, 0.5) !important;
+  }
+
+  /* Visual feedback during resize */
+  [data-panel-resize-handle-id][data-resize-handle-active] {
+    background-color: rgba(139, 92, 246, 0.6) !important;
+  }
+
+  [data-panel-resize-handle-id][data-resize-handle-active]::after {
+    opacity: 1;
+    background: rgba(139, 92, 246, 0.8);
+  }
 }

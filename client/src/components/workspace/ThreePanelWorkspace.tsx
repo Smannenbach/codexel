@@ -126,7 +126,11 @@ export default function ThreePanelWorkspace({
   };
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-screen bg-gray-950">
+    <ResizablePanelGroup 
+      direction="horizontal" 
+      className="h-screen bg-gray-950"
+      autoSaveId="workspace-layout"
+    >
       {/* Left Panel - AI Team Dashboard */}
       <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
         <div className="h-full bg-gradient-to-br from-gray-900 to-gray-950 border-r border-gray-800">
@@ -176,7 +180,7 @@ export default function ThreePanelWorkspace({
         </div>
       </ResizablePanel>
 
-      <ResizableHandle className="w-px bg-gray-800" />
+      <ResizableHandle className="w-1 bg-gray-800 hover:bg-purple-600 transition-colors cursor-col-resize" />
 
       {/* Middle Panel - Conversation */}
       <ResizablePanel defaultSize={45} minSize={30}>
@@ -317,7 +321,7 @@ export default function ThreePanelWorkspace({
         </div>
       </ResizablePanel>
 
-      <ResizableHandle className="w-px bg-gray-800" />
+      <ResizableHandle className="w-1 bg-gray-800 hover:bg-purple-600 transition-colors cursor-col-resize" />
 
       {/* Right Panel - Preview */}
       <ResizablePanel defaultSize={35} minSize={25}>
