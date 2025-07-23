@@ -43,7 +43,7 @@ interface ThreePanelWorkspaceProps {
   onSendMessage: (content: string, attachments?: File[]) => Promise<void>;
 }
 
-// Agent type definitions
+// Agent role definitions
 const AGENT_TYPES = {
   'project-manager': { 
     name: 'Project Manager', 
@@ -61,7 +61,7 @@ const AGENT_TYPES = {
     name: 'UX/UI Designer', 
     icon: Zap, 
     color: 'text-pink-500',
-    description: 'Creating coffee-focused brand identity'
+    description: 'Creating beautiful, user-friendly interfaces'
   },
   'frontend': { 
     name: 'Frontend Dev', 
@@ -73,7 +73,7 @@ const AGENT_TYPES = {
     name: 'Backend Dev', 
     icon: Code2, 
     color: 'text-orange-500',
-    description: 'Setting up FastAPI with PostgreSQL'
+    description: 'Setting up secure API endpoints'
   }
 };
 
@@ -247,7 +247,7 @@ export default function ThreePanelWorkspace({
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Active Agents (5)</p>
               
               {Object.entries(AGENT_TYPES).map(([type, info]) => {
-                const agent = agents.find(a => a.type === type);
+                const agent = agents.find(a => a.role === type);
                 const isActive = agent?.status === 'working';
                 
                 return (
@@ -347,7 +347,7 @@ export default function ThreePanelWorkspace({
                     <div className={`max-w-[80%] ${message.role === 'user' ? 'bg-blue-600' : 'bg-gray-800'} rounded-lg p-3`}>
                       <p className="text-sm text-white whitespace-pre-wrap">{message.content}</p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {new Date(message.createdAt).toLocaleTimeString()}
+                        {message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : ''}
                       </p>
                     </div>
                     {message.role === 'user' && (
@@ -491,15 +491,20 @@ export default function ThreePanelWorkspace({
             </div>
           </div>
 
-          <div className="flex-1 bg-white p-4 overflow-auto">
-            <div className={getDeviceStyles()}>
-              <div className="bg-gray-100 rounded-lg p-4 min-h-[400px]">
-                <div className="text-center py-16">
-                  <CircleCheckBig className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">Ready to Preview</h3>
-                  <p className="text-gray-500">Your application will appear here</p>
-                </div>
-              </div>
+          <div className="flex-1 bg-gray-900 overflow-hidden">
+            <div className={`h-full ${getDeviceStyles()} transition-all duration-300`}>
+              {/* Preview iframe - will show generated app */}
+              <iframe
+                src="/preview"
+                className="w-full h-full bg-white rounded-lg"
+                title="App Preview"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+                style={{
+                  border: previewDevice !== 'desktop' ? '8px solid #1a1a1a' : 'none',
+                  borderRadius: previewDevice === 'mobile' ? '24px' : '8px',
+                  boxShadow: previewDevice !== 'desktop' ? '0 0 40px rgba(0,0,0,0.5)' : 'none'
+                }}
+              />
             </div>
           </div>
         </div>
