@@ -653,6 +653,10 @@ What specific type of website are you looking to create? (e.g., business, portfo
   const { registerMonitoringRoutes } = await import('./routes/monitoring');
   registerMonitoringRoutes(app);
 
+  // Register load testing routes
+  const { registerLoadTestingRoutes } = await import('./routes/loadTesting');
+  registerLoadTestingRoutes(app);
+
   // Register snapshot routes
   const { registerSnapshotRoutes } = await import('./routes/snapshots');
   registerSnapshotRoutes(app);

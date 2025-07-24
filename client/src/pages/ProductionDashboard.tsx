@@ -11,10 +11,13 @@ import {
   Shield,
   Zap,
   Globe,
-  Database
+  Database,
+  Target
 } from 'lucide-react';
 import DeploymentManager from '@/components/deployment/DeploymentManager';
 import PerformanceMonitor from '@/components/monitoring/PerformanceMonitor';
+import LoadTestRunner from '@/components/loadTesting/LoadTestRunner';
+import LiveDeployment from '@/components/deployment/LiveDeployment';
 
 export default function ProductionDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -129,10 +132,12 @@ export default function ProductionDashboard() {
 
         {/* Main Dashboard */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="deployments">Deployments</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+            <TabsTrigger value="load-testing">Load Testing</TabsTrigger>
+            <TabsTrigger value="live-deploy">Live Deploy</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -290,6 +295,14 @@ export default function ProductionDashboard() {
 
           <TabsContent value="monitoring">
             <PerformanceMonitor />
+          </TabsContent>
+
+          <TabsContent value="load-testing">
+            <LoadTestRunner />
+          </TabsContent>
+
+          <TabsContent value="live-deploy">
+            <LiveDeployment />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
