@@ -23,6 +23,7 @@ import { codeIntelligenceService } from "./services/code-intelligence";
 import { memoryOptimizer } from "./services/memory-optimizer";
 import { realTimeCollaboration } from "./services/real-time-collaboration";
 import { mobileAppGenerator } from "./services/mobile-app-generator";
+import { enterpriseAnalytics } from "./services/enterprise-analytics";
 import autonomousAgentsRoutes from './routes/autonomous-agents';
 import collaborationRoutes from './routes/collaboration';
 import enterpriseDeploymentRoutes from './routes/enterprise-deployment';
@@ -1268,6 +1269,98 @@ What specific type of website are you looking to create? (e.g., business, portfo
   
   console.log('🚀 Phase 8 Advanced Features Initialized:');
   console.log('   ✅ Mobile App Generator');
+
+  // Phase 9: Enterprise Analytics Routes
+  
+  // Get enterprise metrics
+  app.get('/api/enterprise/analytics/metrics', async (req, res) => {
+    try {
+      const organizationId = req.query.orgId as string || 'default';
+      const metrics = await enterpriseAnalytics.generateEnterpriseReport(organizationId);
+      res.json(metrics);
+    } catch (error) {
+      console.error('Enterprise metrics failed:', error);
+      res.status(500).json({ error: 'Failed to get enterprise metrics' });
+    }
+  });
+
+  // Get team productivity data
+  app.get('/api/enterprise/analytics/teams', async (req, res) => {
+    try {
+      const organizationId = req.query.orgId as string || 'default';
+      const teams = await enterpriseAnalytics.getTeamProductivity(organizationId);
+      res.json(teams);
+    } catch (error) {
+      console.error('Team productivity failed:', error);
+      res.status(500).json({ error: 'Failed to get team productivity data' });
+    }
+  });
+
+  // Get cost optimization data
+  app.get('/api/enterprise/analytics/costs', async (req, res) => {
+    try {
+      const organizationId = req.query.orgId as string || 'default';
+      const costs = await enterpriseAnalytics.getCostOptimization(organizationId);
+      res.json(costs);
+    } catch (error) {
+      console.error('Cost optimization failed:', error);
+      res.status(500).json({ error: 'Failed to get cost optimization data' });
+    }
+  });
+
+  // Get compliance report
+  app.get('/api/enterprise/analytics/compliance', async (req, res) => {
+    try {
+      const organizationId = req.query.orgId as string || 'default';
+      const compliance = await enterpriseAnalytics.getComplianceReport(organizationId);
+      res.json(compliance);
+    } catch (error) {
+      console.error('Compliance report failed:', error);
+      res.status(500).json({ error: 'Failed to get compliance report' });
+    }
+  });
+
+  // Export enterprise report
+  app.post('/api/enterprise/analytics/export', async (req, res) => {
+    try {
+      const { format = 'json', timeRange = '7d', includeTeams = true, includeCosts = true } = req.body;
+      const organizationId = req.query.orgId as string || 'default';
+      
+      const metrics = ['performance', 'security', 'api-usage'];
+      if (includeTeams) metrics.push('teams');
+      if (includeCosts) metrics.push('costs');
+      
+      const reportData = await enterpriseAnalytics.generateCustomReport(organizationId, metrics);
+      const exportedContent = await enterpriseAnalytics.exportReport(reportData, format);
+      
+      res.json({ 
+        content: exportedContent,
+        filename: `enterprise-report-${new Date().toISOString().split('T')[0]}.${format}`
+      });
+    } catch (error) {
+      console.error('Report export failed:', error);
+      res.status(500).json({ error: 'Failed to export report' });
+    }
+  });
+
+  // Track real-time analytics events
+  app.post('/api/enterprise/analytics/track', async (req, res) => {
+    try {
+      const { event, data } = req.body;
+      const organizationId = req.query.orgId as string || 'default';
+      
+      enterpriseAnalytics.trackEvent(organizationId, event, data);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Event tracking failed:', error);
+      res.status(500).json({ error: 'Failed to track event' });
+    }
+  });
+
+  console.log('🚀 Phase 9 Advanced Features Initialized:');
+  console.log('   ✅ Enterprise Analytics & Insights');
+  console.log('   ✅ Advanced Cost Optimization');
+  console.log('   ✅ Team Productivity Tracking');
 
   const httpServer = createServer(app);
   

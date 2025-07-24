@@ -153,12 +153,9 @@ class MemoryOptimizer {
   private clearAllCaches(): void {
     this.cacheMap.clear();
     
-    // Clear Node.js module cache for non-core modules (carefully)
-    Object.keys(require.cache).forEach(key => {
-      if (!key.includes('node_modules') && key.includes('/tmp/') || key.includes('/temp/')) {
-        delete require.cache[key];
-      }
-    });
+    // Note: Module cache clearing not available in ES modules
+    // Focus on application-level cache clearing instead
+    console.log('Application caches cleared');
   }
 
   private clearExpiredCaches(): void {
