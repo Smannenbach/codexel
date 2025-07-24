@@ -646,8 +646,12 @@ What specific type of website are you looking to create? (e.g., business, portfo
   app.use(analyticsRoutes);
 
   // Register deployment routes
-  const { registerDeploymentRoutes } = await import('./routes/deployments');
+  const { registerDeploymentRoutes } = await import('./routes/deployment');
   registerDeploymentRoutes(app);
+
+  // Register monitoring routes
+  const { registerMonitoringRoutes } = await import('./routes/monitoring');
+  registerMonitoringRoutes(app);
 
   // Register snapshot routes
   const { registerSnapshotRoutes } = await import('./routes/snapshots');
