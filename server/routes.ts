@@ -22,6 +22,7 @@ import { intelligentAIOrchestrator } from "./services/intelligent-ai-orchestrato
 import { codeIntelligenceService } from "./services/code-intelligence";
 import { memoryOptimizer } from "./services/memory-optimizer";
 import { realTimeCollaboration } from "./services/real-time-collaboration";
+import { mobileAppGenerator } from "./services/mobile-app-generator";
 import autonomousAgentsRoutes from './routes/autonomous-agents';
 import collaborationRoutes from './routes/collaboration';
 import enterpriseDeploymentRoutes from './routes/enterprise-deployment';
@@ -1156,10 +1157,117 @@ What specific type of website are you looking to create? (e.g., business, portfo
   // Enterprise Deployment Automation
   app.use('/api/deployment', enterpriseDeploymentRoutes);
 
+  // Phase 8: Mobile App Generator Routes
+  
+  // Generate mobile app from web app
+  app.post('/api/mobile-app/generate', async (req, res) => {
+    try {
+      const { webAppUrl, platform, options } = req.body;
+      
+      if (!webAppUrl || !platform) {
+        return res.status(400).json({ error: 'Web app URL and platform are required' });
+      }
+      
+      const appId = await mobileAppGenerator.generateFromWebApp(webAppUrl, platform, options);
+      res.json({ appId, message: 'Mobile app generation started' });
+    } catch (error) {
+      console.error('Mobile app generation failed:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate mobile app',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Get generation progress
+  app.get('/api/mobile-app/progress/:appId', async (req, res) => {
+    try {
+      const { appId } = req.params;
+      const progress = mobileAppGenerator.getGenerationProgress(appId);
+      
+      if (!progress) {
+        return res.status(404).json({ error: 'Generation progress not found' });
+      }
+      
+      res.json(progress);
+    } catch (error) {
+      console.error('Progress retrieval failed:', error);
+      res.status(500).json({ error: 'Failed to get generation progress' });
+    }
+  });
+
+  // Get generated apps
+  app.get('/api/mobile-app/apps', async (req, res) => {
+    try {
+      const apps = mobileAppGenerator.getAllApps();
+      res.json(apps);
+    } catch (error) {
+      console.error('Apps retrieval failed:', error);
+      res.status(500).json({ error: 'Failed to get mobile apps' });
+    }
+  });
+
+  // Get specific app details
+  app.get('/api/mobile-app/app/:appId', async (req, res) => {
+    try {
+      const { appId } = req.params;
+      const app = mobileAppGenerator.getApp(appId);
+      
+      if (!app) {
+        return res.status(404).json({ error: 'Mobile app not found' });
+      }
+      
+      res.json(app);
+    } catch (error) {
+      console.error('App retrieval failed:', error);
+      res.status(500).json({ error: 'Failed to get mobile app' });
+    }
+  });
+
+  // Download app files
+  app.get('/api/mobile-app/download/:appId', async (req, res) => {
+    try {
+      const { appId } = req.params;
+      const files = mobileAppGenerator.downloadAppFiles(appId);
+      
+      if (!files || files.length === 0) {
+        return res.status(404).json({ error: 'No files found for this app' });
+      }
+      
+      res.json(files);
+    } catch (error) {
+      console.error('File download failed:', error);
+      res.status(500).json({ error: 'Failed to download app files' });
+    }
+  });
+
+  // Generate PWA specifically
+  app.post('/api/mobile-app/generate-pwa', async (req, res) => {
+    try {
+      const { webAppUrl, options } = req.body;
+      
+      if (!webAppUrl) {
+        return res.status(400).json({ error: 'Web app URL is required' });
+      }
+      
+      const appId = await mobileAppGenerator.generatePWA(webAppUrl, options);
+      res.json({ appId, message: 'PWA generation started' });
+    } catch (error) {
+      console.error('PWA generation failed:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate PWA',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   console.log('🚀 Phase 7 Advanced Features Initialized:');
   console.log('   ✅ Autonomous Development Agents');
   console.log('   ✅ Real-time Collaboration System');
   console.log('   ✅ Enterprise Deployment Automation');
+  
+  console.log('🚀 Phase 8 Advanced Features Initialized:');
+  console.log('   ✅ Mobile App Generator');
 
   const httpServer = createServer(app);
   

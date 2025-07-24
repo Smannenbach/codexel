@@ -50,6 +50,7 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 import AISalesAgent from './AISalesAgent';
 import ProductionOptimizer from './ProductionOptimizer';
 import { AdvancedAnalytics, DeploymentManager, TestWorkflows, PerformanceMonitor, SecurityMonitor, DeploymentCentral, preloadCriticalComponents } from '../lazy/LazyComponents';
+import MobileAppGenerator from '@/components/workspace/MobileAppGenerator';
 import OnboardingGuide, { useOnboarding } from './OnboardingGuide';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { projectTemplates } from '@shared/templates';
@@ -124,6 +125,7 @@ export default function ThreePanelWorkspace({
   const [showAutonomousAgents, setShowAutonomousAgents] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showEnterpriseDeployment, setShowEnterpriseDeployment] = useState(false);
+  const [showMobileAppGenerator, setShowMobileAppGenerator] = useState(false);
   const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
@@ -764,6 +766,18 @@ export default function ThreePanelWorkspace({
                 >
                   <RocketIcon className="w-5 h-5" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowMobileAppGenerator(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Phase 8: Mobile App Generator"
+                >
+                  <Smartphone className="w-5 h-5" />
+                </Button>
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-700">
                   <SelectValue />
@@ -1254,6 +1268,21 @@ export default function ThreePanelWorkspace({
           </DialogHeader>
           <div className="mt-4">
             <EnterpriseDeploymentPanel />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phase 8: Mobile App Generator Dialog */}
+      <Dialog open={showMobileAppGenerator} onOpenChange={setShowMobileAppGenerator}>
+        <DialogContent className="max-w-7xl h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Smartphone className="w-6 h-6 text-blue-500" />
+              Phase 8: Mobile App Generator
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <MobileAppGenerator />
           </div>
         </DialogContent>
       </Dialog>
