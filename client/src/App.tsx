@@ -16,6 +16,7 @@ import LayoutMarketplace from "@/pages/layout-marketplace";
 import Pricing from "@/pages/Pricing";
 import Checkout from "@/pages/Checkout";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import TestWorkspace from "@/pages/TestWorkspace";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/payment-success" component={PaymentSuccess} />
+      <Route path="/test" component={TestWorkspace} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/disclosures" component={Disclosures} />
