@@ -30,10 +30,13 @@ export const projects = pgTable("projects", {
 
 export const agents = pgTable("agents", {
   id: serial("id").primaryKey(),
+  projectId: integer("project_id"),
   name: text("name").notNull(),
   role: text("role").notNull(),
   description: text("description"),
   status: text("status").notNull().default("idle"), // idle, active, working, completed
+  currentTask: text("current_task"),
+  progress: integer("progress").notNull().default(0),
   model: text("model").notNull(),
   color: text("color").notNull(),
   icon: text("icon"),

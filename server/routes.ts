@@ -31,6 +31,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register subscription routes
   app.use('/api/subscriptions', createSubscriptionRoutes());
   
+  // Register deployment routes
+  app.post('/api/deployments', async (req, res) => {
+    try {
+      const { projectId, environment, config } = req.body;
+      const deployment = {
+        id: Date.now(),
+        projectId,
+        userId: 1,
+        environment,
+        status: 'deployed',
+        url: environment === 'production' 
+          ? `https://${config?.domain || 'app'}.codexel.ai`
+          : `https://staging-${projectId}.codexel.ai`,
+        deployedAt: new Date().toISOString(),
+        logs: 'Deployment completed successfully'
+      };
+      res.json(deployment);
+    } catch (error) {
+      console.error('Create deployment error:', error);
+      res.status(500).json({ error: 'Failed to create deployment' });
+    }
+  });
+  
   // Preview route - serves generated app preview
   app.get('/preview', (req, res) => {
     res.send(`

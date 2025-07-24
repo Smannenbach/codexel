@@ -37,6 +37,11 @@ import type { Agent, Message } from '@shared/schema';
 import ShareLayoutButton from './ShareLayoutButton';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import AISalesAgent from './AISalesAgent';
+import ProductionOptimizer from './ProductionOptimizer';
+import AdvancedAnalytics from './AdvancedAnalytics';
+import DeploymentManager from './DeploymentManager';
+import TestWorkflows from './TestWorkflows';
+import PerformanceMonitor from './PerformanceMonitor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { projectTemplates } from '@shared/templates';
 import { marketingStacks } from '@shared/marketing-stacks';
@@ -100,7 +105,6 @@ export default function ThreePanelWorkspace({
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
   const [activeSnapLine, setActiveSnapLine] = useState<number | null>(null);
-  const [activeAgents, setActiveAgents] = useState<Agent[]>(agents.length > 0 ? agents : defaultAgents);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
@@ -117,57 +121,84 @@ export default function ThreePanelWorkspace({
       projectId,
       name: 'Project Manager',
       role: 'project-manager',
+      description: 'Coordinates team and manages project roadmap',
       status: 'active',
       currentTask: 'Creating project roadmap and coordinating team tasks',
       model: 'gpt-4-turbo',
+      color: 'text-purple-500',
+      icon: null,
+      config: {},
       progress: 35,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 2,
       projectId,
       name: 'Solution Architect',
       role: 'architect',
+      description: 'Designs scalable system architecture',
       status: 'active',
       currentTask: 'Designing system architecture and API structure',
       model: 'claude-3-5-sonnet',
+      color: 'text-blue-500',
+      icon: null,
+      config: {},
       progress: 45,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 3,
       projectId,
       name: 'UX Designer',
       role: 'ux-designer',
+      description: 'Creates user-friendly interfaces',
       status: 'idle',
       currentTask: 'Waiting for architecture approval',
       model: 'gpt-4-turbo',
+      color: 'text-pink-500',
+      icon: null,
+      config: {},
       progress: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 4,
       projectId,
       name: 'Frontend Dev',
       role: 'frontend',
+      description: 'Builds responsive React components',
       status: 'idle',
       currentTask: 'Ready to implement UI components',
       model: 'gpt-4-turbo',
+      color: 'text-green-500',
+      icon: null,
+      config: {},
       progress: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 5,
       projectId,
       name: 'Backend Dev',
       role: 'backend',
+      description: 'Sets up secure API endpoints',
       status: 'idle',
       currentTask: 'Preparing API endpoints',
       model: 'claude-3-5-sonnet',
+      color: 'text-orange-500',
+      icon: null,
+      config: {},
       progress: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
-  ];
+  ] as Agent[];
+  
+  const [activeAgents, setActiveAgents] = useState<Agent[]>(agents.length > 0 ? agents : defaultAgents);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -794,7 +825,7 @@ export default function ThreePanelWorkspace({
               Workspace Analytics
             </DialogTitle>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="mt-4 space-y-6">
             <AnalyticsDashboard 
               projectId={projectId} 
               userId={userId}
@@ -806,6 +837,11 @@ export default function ThreePanelWorkspace({
                 setShowAnalytics(false);
               }}
             />
+            <AdvancedAnalytics />
+            <ProductionOptimizer />
+            <DeploymentManager projectId={projectId} />
+            <TestWorkflows projectId={projectId} />
+            <PerformanceMonitor />
           </div>
         </DialogContent>
       </Dialog>
