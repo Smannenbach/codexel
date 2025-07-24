@@ -14,6 +14,10 @@ import { AgentOrchestrator } from "./services/ai-orchestrator";
 import type { InsertMessage, InsertProject, InsertAgent } from "@shared/schema";
 import { aiContentGenerator } from "./services/ai-content-generator";
 import { performanceOptimizer } from "./services/performance-optimizer";
+import { cachingService, SpecializedCaches } from "./services/caching-service";
+import { cdnOptimizer, cdnMiddleware } from "./services/cdn-optimizer";
+import { databaseOptimizer } from "./services/database-optimizer";
+import { productionDeployer } from "./services/production-deployer";
 import { blogPosts, marketingCampaigns } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -32,6 +36,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Apply performance monitoring middleware
   app.use(performanceOptimizer.middleware());
+  
+  // Apply CDN optimization middleware
+  app.use(cdnMiddleware);
+  
+  // Apply caching middleware to API routes (5 minute cache)
+  app.use('/api', cachingService.middleware(300000));
   
   // Register voice cloning routes with upload rate limiting
   app.use('/api/voice', rateLimiters.upload);
@@ -729,6 +739,251 @@ What specific type of website are you looking to create? (e.g., business, portfo
     } catch (error) {
       console.error('Auto-optimize error:', error);
       res.status(500).json({ error: 'Failed to apply optimizations' });
+    }
+  });
+
+  // Caching Service API endpoints
+  app.get('/api/cache/stats', (req, res) => {
+    try {
+      const cacheStats = cachingService.getStats();
+      const specializedStats = {
+        api: SpecializedCaches.api.getStats(),
+        database: SpecializedCaches.database.getStats(),
+        assets: SpecializedCaches.assets.getStats(),
+        sessions: SpecializedCaches.sessions.getStats()
+      };
+      res.json({ 
+        general: cacheStats,
+        specialized: specializedStats
+      });
+    } catch (error) {
+      console.error('Cache stats error:', error);
+      res.status(500).json({ error: 'Failed to get cache statistics' });
+    }
+  });
+
+  app.post('/api/cache/clear', (req, res) => {
+    try {
+      const { type } = req.body;
+      
+      if (type === 'all') {
+        cachingService.clear();
+        SpecializedCaches.api.clear();
+        SpecializedCaches.database.clear();
+        SpecializedCaches.assets.clear();
+        SpecializedCaches.sessions.clear();
+      } else if (type === 'api') {
+        SpecializedCaches.api.clear();
+      } else if (type === 'database') {
+        SpecializedCaches.database.clear();
+      } else if (type === 'assets') {
+        SpecializedCaches.assets.clear();
+      } else if (type === 'sessions') {
+        SpecializedCaches.sessions.clear();
+      } else {
+        cachingService.clear();
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Cleared ${type || 'general'} cache`
+      });
+    } catch (error) {
+      console.error('Cache clear error:', error);
+      res.status(500).json({ error: 'Failed to clear cache' });
+    }
+  });
+
+  app.get('/api/cache/optimize', (req, res) => {
+    try {
+      const recommendations = cachingService.optimizeCache();
+      res.json({ 
+        recommendations,
+        message: `Found ${recommendations.length} optimization opportunities`
+      });
+    } catch (error) {
+      console.error('Cache optimize error:', error);
+      res.status(500).json({ error: 'Failed to optimize cache' });
+    }
+  });
+
+  // CDN Optimization API endpoints
+  app.get('/api/cdn/stats', (req, res) => {
+    try {
+      const cdnStats = cdnOptimizer.getPerformanceStats();
+      res.json(cdnStats);
+    } catch (error) {
+      console.error('CDN stats error:', error);
+      res.status(500).json({ error: 'Failed to get CDN statistics' });
+    }
+  });
+
+  app.post('/api/cdn/config', (req, res) => {
+    try {
+      const { config } = req.body;
+      cdnOptimizer.updateConfig(config);
+      res.json({ 
+        success: true, 
+        message: 'CDN configuration updated',
+        config
+      });
+    } catch (error) {
+      console.error('CDN config error:', error);
+      res.status(500).json({ error: 'Failed to update CDN configuration' });
+    }
+  });
+
+  app.get('/api/cdn/optimize/:assetPath(*)', (req, res) => {
+    try {
+      const { assetPath } = req.params;
+      const optimizedUrl = cdnOptimizer.generateAssetURL(`/${assetPath}`);
+      const recommendations = cdnOptimizer.getImageOptimizations(`/${assetPath}`);
+      
+      res.json({
+        originalPath: `/${assetPath}`,
+        optimizedUrl,
+        recommendations
+      });
+    } catch (error) {
+      console.error('CDN optimize error:', error);
+      res.status(500).json({ error: 'Failed to optimize asset' });
+    }
+  });
+
+  // Database Optimization API endpoints
+  app.get('/api/database/stats', (req, res) => {
+    try {
+      const stats = databaseOptimizer.getStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Database stats error:', error);
+      res.status(500).json({ error: 'Failed to get database statistics' });
+    }
+  });
+
+  app.get('/api/database/recommendations', (req, res) => {
+    try {
+      const recommendations = databaseOptimizer.getOptimizationRecommendations();
+      const indexRecommendations = databaseOptimizer.getIndexRecommendations();
+      
+      res.json({
+        optimization: recommendations,
+        indexes: indexRecommendations,
+        sqlStatements: databaseOptimizer.generateIndexSQL()
+      });
+    } catch (error) {
+      console.error('Database recommendations error:', error);
+      res.status(500).json({ error: 'Failed to get database recommendations' });
+    }
+  });
+
+  app.post('/api/database/cleanup', (req, res) => {
+    try {
+      databaseOptimizer.cleanup();
+      res.json({ 
+        success: true, 
+        message: 'Database query history cleaned up'
+      });
+    } catch (error) {
+      console.error('Database cleanup error:', error);
+      res.status(500).json({ error: 'Failed to cleanup database optimizer' });
+    }
+  });
+
+  // Production Deployment API endpoints
+  app.post('/api/deploy', async (req, res) => {
+    try {
+      const config = req.body;
+      const deploymentId = await productionDeployer.createDeployment(config);
+      
+      res.json({
+        success: true,
+        deploymentId,
+        message: 'Deployment started successfully',
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('Deployment creation error:', error);
+      res.status(500).json({ error: 'Failed to start deployment' });
+    }
+  });
+
+  app.get('/api/deploy/:deploymentId/status', (req, res) => {
+    try {
+      const { deploymentId } = req.params;
+      const status = productionDeployer.getDeploymentStatus(deploymentId);
+      
+      if (!status) {
+        return res.status(404).json({ error: 'Deployment not found' });
+      }
+      
+      res.json(status);
+    } catch (error) {
+      console.error('Deployment status error:', error);
+      res.status(500).json({ error: 'Failed to get deployment status' });
+    }
+  });
+
+  app.get('/api/deploy/list', (req, res) => {
+    try {
+      const deployments = productionDeployer.getAllDeployments();
+      res.json({ deployments });
+    } catch (error) {
+      console.error('Deployment list error:', error);
+      res.status(500).json({ error: 'Failed to get deployment list' });
+    }
+  });
+
+  app.post('/api/deploy/:deploymentId/cancel', (req, res) => {
+    try {
+      const { deploymentId } = req.params;
+      const cancelled = productionDeployer.cancelDeployment(deploymentId);
+      
+      if (cancelled) {
+        res.json({ success: true, message: 'Deployment cancelled successfully' });
+      } else {
+        res.status(400).json({ error: 'Cannot cancel deployment' });
+      }
+    } catch (error) {
+      console.error('Deployment cancel error:', error);
+      res.status(500).json({ error: 'Failed to cancel deployment' });
+    }
+  });
+
+  app.post('/api/deploy/:deploymentId/rollback', async (req, res) => {
+    try {
+      const { deploymentId } = req.params;
+      const rolledBack = await productionDeployer.rollbackDeployment(deploymentId);
+      
+      if (rolledBack) {
+        res.json({ success: true, message: 'Rollback completed successfully' });
+      } else {
+        res.status(400).json({ error: 'Cannot rollback deployment' });
+      }
+    } catch (error) {
+      console.error('Deployment rollback error:', error);
+      res.status(500).json({ error: 'Failed to rollback deployment' });
+    }
+  });
+
+  app.get('/api/deploy/recommendations', (req, res) => {
+    try {
+      const recommendations = productionDeployer.getDeploymentRecommendations();
+      res.json({ recommendations });
+    } catch (error) {
+      console.error('Deployment recommendations error:', error);
+      res.status(500).json({ error: 'Failed to get deployment recommendations' });
+    }
+  });
+
+  app.get('/api/deploy/:deploymentId/health', (req, res) => {
+    try {
+      const { deploymentId } = req.params;
+      const healthChecks = productionDeployer.getHealthChecks(deploymentId);
+      res.json({ healthChecks });
+    } catch (error) {
+      console.error('Health checks error:', error);
+      res.status(500).json({ error: 'Failed to get health checks' });
     }
   });
 
