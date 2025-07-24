@@ -43,6 +43,8 @@ import OnboardingGuide, { useOnboarding } from './OnboardingGuide';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { projectTemplates } from '@shared/templates';
 import { marketingStacks } from '@shared/marketing-stacks';
+import { WorkspaceSnapshots } from './WorkspaceSnapshots';
+import { History, Camera, Save } from 'lucide-react';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -198,6 +200,43 @@ export default function ThreePanelWorkspace({
   ] as Agent[];
   
   const [activeAgents, setActiveAgents] = useState<Agent[]>(agents.length > 0 ? agents : defaultAgents);
+  const [showSnapshots, setShowSnapshots] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const autoSaveInterval = setInterval(async () => {
+      if (!isAutoSaving && messages.length > 0) {
+        setIsAutoSaving(true);
+        try {
+          const workspaceState = {
+            panelSizes,
+            previewDevice,
+            selectedModel,
+            messages: messages.slice(-5), // Keep last 5 messages for auto-save
+            agents: activeAgents,
+            lastPanelFocus,
+            projectId,
+            timestamp: new Date().toISOString()
+          };
+
+          await apiRequest('POST', '/api/snapshots/auto-save', {
+            projectId,
+            snapshotData: workspaceState
+          });
+
+          setLastAutoSave(new Date());
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        } finally {
+          setIsAutoSaving(false);
+        }
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [messages, panelSizes, previewDevice, selectedModel, activeAgents, lastPanelFocus, projectId, isAutoSaving]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -697,6 +736,15 @@ export default function ThreePanelWorkspace({
                 >
                   <Smartphone className="w-4 h-4" />
                 </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => setShowSnapshots(true)}
+                  title="Workspace Snapshots"
+                >
+                  <History className="w-4 h-4" />
+                </Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <RefreshCw className="w-4 h-4" />
                 </Button>
@@ -876,6 +924,46 @@ export default function ThreePanelWorkspace({
                   description: "Your personalized AI is ready to help!",
                 });
               }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Workspace Snapshots Dialog */}
+      <Dialog open={showSnapshots} onOpenChange={setShowSnapshots}>
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <History className="w-6 h-6 text-purple-500" />
+              Workspace Snapshots
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <WorkspaceSnapshots
+              projectId={projectId}
+              onRestore={(snapshotData) => {
+                // Restore workspace state
+                if (snapshotData.panelSizes) {
+                  setPanelSizes(snapshotData.panelSizes);
+                }
+                if (snapshotData.previewDevice) {
+                  setPreviewDevice(snapshotData.previewDevice);
+                }
+                if (snapshotData.selectedModel) {
+                  setSelectedModel(snapshotData.selectedModel);
+                }
+                setShowSnapshots(false);
+              }}
+              getCurrentWorkspaceState={() => ({
+                panelSizes,
+                previewDevice,
+                selectedModel,
+                messages: messages.slice(-10), // Keep last 10 messages
+                agents: activeAgents,
+                lastPanelFocus,
+                projectId,
+                timestamp: new Date().toISOString()
+              })}
             />
           </div>
         </DialogContent>

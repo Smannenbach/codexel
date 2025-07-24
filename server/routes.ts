@@ -648,6 +648,10 @@ What specific type of website are you looking to create? (e.g., business, portfo
   const { registerDeploymentRoutes } = await import('./routes/deployments');
   registerDeploymentRoutes(app);
 
+  // Register snapshot routes
+  const { registerSnapshotRoutes } = await import('./routes/snapshots');
+  registerSnapshotRoutes(app);
+
   const httpServer = createServer(app);
   return httpServer;
 }

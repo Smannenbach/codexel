@@ -1,7 +1,7 @@
 import { db } from './db';
-import { users, projects, agents, messages, checklistItems, projectAgents, workspaceLayouts, layoutRatings, workspaceAnalytics, layoutRecommendations } from '@shared/schema';
+import { users, projects, agents, messages, checklistItems, projectAgents, workspaceLayouts, layoutRatings, workspaceAnalytics, layoutRecommendations, workspaceSnapshots } from '@shared/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem, WorkspaceLayout, InsertWorkspaceLayout, LayoutRating, InsertLayoutRating, WorkspaceAnalytic, InsertWorkspaceAnalytic, LayoutRecommendation, InsertLayoutRecommendation } from '@shared/schema';
+import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem, WorkspaceLayout, InsertWorkspaceLayout, LayoutRating, InsertLayoutRating, WorkspaceAnalytic, InsertWorkspaceAnalytic, LayoutRecommendation, InsertLayoutRecommendation, WorkspaceSnapshot, InsertWorkspaceSnapshot } from '@shared/schema';
 
 export interface IStorage {
   // User operations
@@ -43,6 +43,13 @@ export interface IStorage {
   createLayoutRating(rating: InsertLayoutRating): Promise<LayoutRating>;
   getUserLayoutRating(layoutId: number, userId: number): Promise<LayoutRating | undefined>;
   updateLayoutAverageRating(layoutId: number): Promise<void>;
+
+  // Workspace Snapshot operations
+  getWorkspaceSnapshots(userId: number, projectId?: number): Promise<WorkspaceSnapshot[]>;
+  getWorkspaceSnapshotById(id: number, userId: number): Promise<WorkspaceSnapshot | undefined>;
+  createWorkspaceSnapshot(snapshot: InsertWorkspaceSnapshot): Promise<WorkspaceSnapshot>;
+  deleteWorkspaceSnapshot(id: number, userId: number): Promise<boolean>;
+  cleanupAutoSaveSnapshots(userId: number, projectId: number, keepCount: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -227,6 +234,59 @@ export class DatabaseStorage implements IStorage {
     await db.update(workspaceLayouts)
       .set({ rating: avgRating })
       .where(eq(workspaceLayouts.id, layoutId));
+  }
+
+  // Workspace Snapshot operations
+  async getWorkspaceSnapshots(userId: number, projectId?: number): Promise<WorkspaceSnapshot[]> {
+    let query = db.select().from(workspaceSnapshots).where(eq(workspaceSnapshots.userId, userId));
+    
+    if (projectId) {
+      query = query.where(and(eq(workspaceSnapshots.userId, userId), eq(workspaceSnapshots.projectId, projectId)));
+    }
+    
+    return await query.orderBy(desc(workspaceSnapshots.createdAt));
+  }
+
+  async getWorkspaceSnapshotById(id: number, userId: number): Promise<WorkspaceSnapshot | undefined> {
+    const [snapshot] = await db
+      .select()
+      .from(workspaceSnapshots)
+      .where(and(eq(workspaceSnapshots.id, id), eq(workspaceSnapshots.userId, userId)));
+    return snapshot;
+  }
+
+  async createWorkspaceSnapshot(insertSnapshot: InsertWorkspaceSnapshot): Promise<WorkspaceSnapshot> {
+    const [snapshot] = await db.insert(workspaceSnapshots).values(insertSnapshot).returning();
+    return snapshot;
+  }
+
+  async deleteWorkspaceSnapshot(id: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(workspaceSnapshots)
+      .where(and(eq(workspaceSnapshots.id, id), eq(workspaceSnapshots.userId, userId)));
+    return result.rowCount > 0;
+  }
+
+  async cleanupAutoSaveSnapshots(userId: number, projectId: number, keepCount: number): Promise<void> {
+    // Get auto-save snapshots ordered by creation date (newest first)
+    const autoSaves = await db
+      .select({ id: workspaceSnapshots.id })
+      .from(workspaceSnapshots)
+      .where(and(
+        eq(workspaceSnapshots.userId, userId),
+        eq(workspaceSnapshots.projectId, projectId),
+        eq(workspaceSnapshots.isAutoSaved, true)
+      ))
+      .orderBy(desc(workspaceSnapshots.createdAt));
+
+    if (autoSaves.length > keepCount) {
+      const toDelete = autoSaves.slice(keepCount);
+      const idsToDelete = toDelete.map(s => s.id);
+      
+      for (const id of idsToDelete) {
+        await db.delete(workspaceSnapshots).where(eq(workspaceSnapshots.id, id));
+      }
+    }
   }
 }
 

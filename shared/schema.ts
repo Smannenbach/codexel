@@ -297,6 +297,28 @@ export type InsertWorkspaceLayout = typeof workspaceLayouts.$inferInsert;
 export type LayoutRating = typeof layoutRatings.$inferSelect;
 export type InsertLayoutRating = typeof layoutRatings.$inferInsert;
 
+// Workspace snapshots table for one-click save/restore
+export const workspaceSnapshots = pgTable("workspace_snapshots", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  snapshotData: jsonb("snapshot_data").notNull(), // Complete workspace state
+  thumbnail: text("thumbnail"), // Base64 encoded screenshot
+  isAutoSaved: boolean("is_auto_saved").default(false),
+  tags: text("tags").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index('snapshots_user_idx').on(table.userId),
+  index('snapshots_project_idx').on(table.projectId),
+  index('snapshots_auto_saved_idx').on(table.isAutoSaved)
+]);
+
+export type WorkspaceSnapshot = typeof workspaceSnapshots.$inferSelect;
+export type InsertWorkspaceSnapshot = typeof workspaceSnapshots.$inferInsert;
+
 // Workspace analytics table
 export const workspaceAnalytics = pgTable('workspace_analytics', {
   id: serial('id').primaryKey(),
