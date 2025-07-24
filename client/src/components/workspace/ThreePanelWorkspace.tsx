@@ -55,6 +55,7 @@ import { WorkspaceSnapshots } from './WorkspaceSnapshots';
 import OneClickSnapshot, { useSnapshotShortcuts } from './OneClickSnapshot';
 import { AudioSettings } from '@/components/ui/audio-settings';
 import { useAudioFeedback } from '@/hooks/useAudioFeedback';
+import { AdvancedCodeGeneration } from './AdvancedCodeGeneration';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -113,6 +114,7 @@ export default function ThreePanelWorkspace({
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAISalesAgent, setShowAISalesAgent] = useState(false);
   const [showAudioSettings, setShowAudioSettings] = useState(false);
+  const [showAdvancedCodeGen, setShowAdvancedCodeGen] = useState(false);
   const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
@@ -705,6 +707,18 @@ export default function ThreePanelWorkspace({
                 >
                   <Volume2 className="w-5 h-5" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowAdvancedCodeGen(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Advanced Code Generation"
+                >
+                  <Code2 className="w-5 h-5" />
+                </Button>
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-700">
                   <SelectValue />
@@ -1020,6 +1034,19 @@ export default function ThreePanelWorkspace({
             </DialogTitle>
           </DialogHeader>
           <AudioSettings />
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Code Generation Dialog */}
+      <Dialog open={showAdvancedCodeGen} onOpenChange={setShowAdvancedCodeGen}>
+        <DialogContent className="max-w-7xl max-h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Code2 className="w-6 h-6 text-purple-500" />
+              Advanced Code Generation
+            </DialogTitle>
+          </DialogHeader>
+          <AdvancedCodeGeneration />
         </DialogContent>
       </Dialog>
 

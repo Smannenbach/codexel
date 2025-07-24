@@ -20,6 +20,7 @@ import { databaseOptimizer } from "./services/database-optimizer";
 import { productionDeployer } from "./services/production-deployer";
 import { intelligentAIOrchestrator } from "./services/intelligent-ai-orchestrator";
 import { codeIntelligenceService } from "./services/code-intelligence";
+import { memoryOptimizer } from "./services/memory-optimizer";
 import { blogPosts, marketingCampaigns } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -675,6 +676,14 @@ What specific type of website are you looking to create? (e.g., business, portfo
   const { registerLoadTestingRoutes } = await import('./routes/loadTesting');
   registerLoadTestingRoutes(app);
 
+  // Register advanced code generation routes
+  const advancedCodeGenerationRoutes = await import('./routes/advanced-code-generation');
+  app.use('/api/code-generation', advancedCodeGenerationRoutes.default);
+
+  // Register smart templates routes  
+  const smartTemplatesRoutes = await import('./routes/smart-templates');
+  app.use('/api/smart-templates', smartTemplatesRoutes.default);
+
   // Register live deployment routes
   const { registerLiveDeploymentRoutes } = await import('./routes/liveDeployment');
   registerLiveDeploymentRoutes(app);
@@ -743,6 +752,51 @@ What specific type of website are you looking to create? (e.g., business, portfo
     } catch (error) {
       console.error('Auto-optimize error:', error);
       res.status(500).json({ error: 'Failed to apply optimizations' });
+    }
+  });
+
+  // Memory Optimization API endpoints
+  app.get('/api/memory/metrics', (req, res) => {
+    try {
+      const metrics = memoryOptimizer.getCurrentMemoryMetrics();
+      res.json({ success: true, metrics });
+    } catch (error) {
+      console.error('Memory metrics error:', error);
+      res.status(500).json({ error: 'Failed to get memory metrics' });
+    }
+  });
+
+  app.get('/api/memory/history', (req, res) => {
+    try {
+      const history = memoryOptimizer.getMemoryHistory();
+      res.json({ success: true, history });
+    } catch (error) {
+      console.error('Memory history error:', error);
+      res.status(500).json({ error: 'Failed to get memory history' });
+    }
+  });
+
+  app.get('/api/memory/recommendations', (req, res) => {
+    try {
+      const recommendations = memoryOptimizer.getRecommendations();
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('Memory recommendations error:', error);
+      res.status(500).json({ error: 'Failed to get memory recommendations' });
+    }
+  });
+
+  app.post('/api/memory/optimize', (req, res) => {
+    try {
+      const optimizations = memoryOptimizer.optimizeNow();
+      res.json({ 
+        success: true, 
+        optimizations,
+        message: `Applied ${optimizations.length} memory optimizations`
+      });
+    } catch (error) {
+      console.error('Memory optimize error:', error);
+      res.status(500).json({ error: 'Failed to optimize memory' });
     }
   });
 
