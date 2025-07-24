@@ -38,10 +38,8 @@ import ShareLayoutButton from './ShareLayoutButton';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import AISalesAgent from './AISalesAgent';
 import ProductionOptimizer from './ProductionOptimizer';
-import AdvancedAnalytics from './AdvancedAnalytics';
-import DeploymentManager from './DeploymentManager';
-import TestWorkflows from './TestWorkflows';
-import PerformanceMonitor from './PerformanceMonitor';
+import { AdvancedAnalytics, DeploymentManager, TestWorkflows, PerformanceMonitor, SecurityMonitor, DeploymentCentral, preloadCriticalComponents } from '../lazy/LazyComponents';
+import OnboardingGuide, { useOnboarding } from './OnboardingGuide';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { projectTemplates } from '@shared/templates';
 import { marketingStacks } from '@shared/marketing-stacks';
@@ -107,6 +105,7 @@ export default function ThreePanelWorkspace({
   const [activeSnapLine, setActiveSnapLine] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { showOnboarding, setShowOnboarding, completeOnboarding } = useOnboarding();
   
   const userId = 1; // TODO: Get from authenticated user
   
@@ -842,6 +841,8 @@ export default function ThreePanelWorkspace({
             <DeploymentManager projectId={projectId} />
             <TestWorkflows projectId={projectId} />
             <PerformanceMonitor />
+            <SecurityMonitor />
+            <DeploymentCentral />
           </div>
         </DialogContent>
       </Dialog>
@@ -879,6 +880,13 @@ export default function ThreePanelWorkspace({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Onboarding Guide */}
+      <OnboardingGuide
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={completeOnboarding}
+      />
     </ResizablePanelGroup>
   );
 }

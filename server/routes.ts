@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { registerVoiceRoutes } from './routes/voice';
 import aiRoutes from './routes/ai';
 import { createSubscriptionRoutes } from './routes/subscriptions';
+import errorRoutes from './routes/errors';
+import { rateLimiters, rateLimitLogger } from './middleware/rateLimiter';
 import multer from "multer";
 import { storage } from "./storage";
 import { voiceCloneService } from "./services/voiceCloning";
@@ -22,14 +24,23 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Register voice cloning routes
+  // Apply rate limiting middleware globally
+  app.use(rateLimitLogger);
+  app.use('/api', rateLimiters.general);
+  
+  // Register voice cloning routes with upload rate limiting
+  app.use('/api/voice', rateLimiters.upload);
   registerVoiceRoutes(app);
   
-  // Register AI chat routes
+  // Register AI chat routes with specific rate limiting
+  app.use('/api/ai', rateLimiters.aiChat);
   app.use('/api/ai', aiRoutes);
   
   // Register subscription routes
   app.use('/api/subscriptions', createSubscriptionRoutes());
+  
+  // Register error logging routes
+  app.use(errorRoutes);
   
   // Register deployment routes
   app.post('/api/deployments', async (req, res) => {
@@ -632,6 +643,10 @@ What specific type of website are you looking to create? (e.g., business, portfo
   // Import and use analytics routes
   const analyticsRoutes = await import('./routes/analytics').then(m => m.default);
   app.use(analyticsRoutes);
+
+  // Register deployment routes
+  const { registerDeploymentRoutes } = await import('./routes/deployments');
+  registerDeploymentRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

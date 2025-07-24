@@ -17,6 +17,7 @@ import {
   PieChart
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import ProductionReadiness from './ProductionReadiness';
 
 interface AnalyticsData {
   userEngagement: number;
@@ -130,10 +131,11 @@ export default function AdvancedAnalytics() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="metrics" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-800 border-gray-700">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
               <TabsTrigger value="metrics" className="text-gray-300">Performance</TabsTrigger>
               <TabsTrigger value="usage" className="text-gray-300">Usage Patterns</TabsTrigger>
               <TabsTrigger value="insights" className="text-gray-300">AI Insights</TabsTrigger>
+              <TabsTrigger value="production" className="text-gray-300">Production</TabsTrigger>
             </TabsList>
             
             <TabsContent value="metrics" className="space-y-4 mt-4">
@@ -241,6 +243,10 @@ export default function AdvancedAnalytics() {
                 <Zap className="h-4 w-4 mr-2" />
                 Generate New Insights
               </Button>
+            </TabsContent>
+            
+            <TabsContent value="production" className="space-y-4 mt-4">
+              <ProductionReadiness />
             </TabsContent>
           </Tabs>
         </CardContent>
