@@ -34,7 +34,10 @@ import {
   BarChart3,
   Settings,
   X,
-  Volume2
+  Volume2,
+  Users,
+  Rocket as RocketIcon,
+  GitBranch
 } from 'lucide-react';
 import { AI_MODELS } from '@/lib/ai-models';
 import { apiRequest } from '@/lib/queryClient';
@@ -56,6 +59,9 @@ import OneClickSnapshot, { useSnapshotShortcuts } from './OneClickSnapshot';
 import { AudioSettings } from '@/components/ui/audio-settings';
 import { useAudioFeedback } from '@/hooks/useAudioFeedback';
 import { AdvancedCodeGeneration } from './AdvancedCodeGeneration';
+import AutonomousAgentPanel from './AutonomousAgentPanel';
+import CollaborationPanel from './CollaborationPanel';
+import EnterpriseDeploymentPanel from './EnterpriseDeploymentPanel';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -115,6 +121,9 @@ export default function ThreePanelWorkspace({
   const [showAISalesAgent, setShowAISalesAgent] = useState(false);
   const [showAudioSettings, setShowAudioSettings] = useState(false);
   const [showAdvancedCodeGen, setShowAdvancedCodeGen] = useState(false);
+  const [showAutonomousAgents, setShowAutonomousAgents] = useState(false);
+  const [showCollaboration, setShowCollaboration] = useState(false);
+  const [showEnterpriseDeployment, setShowEnterpriseDeployment] = useState(false);
   const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
@@ -719,6 +728,42 @@ export default function ThreePanelWorkspace({
                 >
                   <Code2 className="w-5 h-5" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowAutonomousAgents(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Phase 7: Autonomous Agents"
+                >
+                  <Brain className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowCollaboration(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Phase 7: Real-time Collaboration"
+                >
+                  <Users className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowEnterpriseDeployment(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Phase 7: Enterprise Deployment"
+                >
+                  <RocketIcon className="w-5 h-5" />
+                </Button>
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-700">
                   <SelectValue />
@@ -1164,6 +1209,51 @@ export default function ThreePanelWorkspace({
               }}
               getCurrentWorkspaceState={getCurrentWorkspaceState}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phase 7: Autonomous Agents Dialog */}
+      <Dialog open={showAutonomousAgents} onOpenChange={setShowAutonomousAgents}>
+        <DialogContent className="max-w-7xl h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Brain className="w-6 h-6 text-purple-500" />
+              Phase 7: Autonomous Development Agents
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <AutonomousAgentPanel />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phase 7: Real-time Collaboration Dialog */}
+      <Dialog open={showCollaboration} onOpenChange={setShowCollaboration}>
+        <DialogContent className="max-w-7xl h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Users className="w-6 h-6 text-blue-500" />
+              Phase 7: Real-time Collaboration
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <CollaborationPanel />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phase 7: Enterprise Deployment Dialog */}
+      <Dialog open={showEnterpriseDeployment} onOpenChange={setShowEnterpriseDeployment}>
+        <DialogContent className="max-w-7xl h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <RocketIcon className="w-6 h-6 text-green-500" />
+              Phase 7: Enterprise Deployment Automation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <EnterpriseDeploymentPanel />
           </div>
         </DialogContent>
       </Dialog>

@@ -21,6 +21,10 @@ import { productionDeployer } from "./services/production-deployer";
 import { intelligentAIOrchestrator } from "./services/intelligent-ai-orchestrator";
 import { codeIntelligenceService } from "./services/code-intelligence";
 import { memoryOptimizer } from "./services/memory-optimizer";
+import { realTimeCollaboration } from "./services/real-time-collaboration";
+import autonomousAgentsRoutes from './routes/autonomous-agents';
+import collaborationRoutes from './routes/collaboration';
+import enterpriseDeploymentRoutes from './routes/enterprise-deployment';
 import { blogPosts, marketingCampaigns } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -1141,6 +1145,26 @@ What specific type of website are you looking to create? (e.g., business, portfo
     }
   });
 
+  // Phase 7: Advanced Automation & Enterprise Scalability Routes
+  
+  // Autonomous Agents Management
+  app.use('/api/autonomous', autonomousAgentsRoutes);
+  
+  // Real-time Collaboration
+  app.use('/api/collaboration', collaborationRoutes);
+  
+  // Enterprise Deployment Automation
+  app.use('/api/deployment', enterpriseDeploymentRoutes);
+
+  console.log('🚀 Phase 7 Advanced Features Initialized:');
+  console.log('   ✅ Autonomous Development Agents');
+  console.log('   ✅ Real-time Collaboration System');
+  console.log('   ✅ Enterprise Deployment Automation');
+
   const httpServer = createServer(app);
+  
+  // Initialize real-time collaboration WebSocket server
+  realTimeCollaboration.setupWebSocketServer(httpServer);
+  
   return httpServer;
 }

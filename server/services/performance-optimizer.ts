@@ -272,6 +272,28 @@ class PerformanceOptimizer {
     return recentRequests.length;
   }
 
+  // Get performance metrics for enterprise deployment (compatible interface)
+  getPerformanceMetrics() {
+    const memUsage = process.memoryUsage();
+    const summary = this.getSummary();
+    
+    // Calculate CPU usage percentage (approximated from load average)
+    const loadAvg = require('os').loadavg();
+    const cpuUsage = Math.min(loadAvg[0] * 100 / require('os').cpus().length, 100);
+    
+    // Calculate memory usage percentage
+    const memoryUsage = (memUsage.heapUsed / memUsage.heapTotal) * 100;
+    
+    return {
+      cpuUsage: Math.round(cpuUsage * 10) / 10, // Round to 1 decimal
+      memoryUsage: Math.round(memoryUsage * 10) / 10, // Round to 1 decimal
+      responseTime: summary.averageResponseTime,
+      requestsPerMinute: this.getRequestsPerMinute(),
+      errorRate: summary.errorRate,
+      timestamp: new Date()
+    };
+  }
+
   // Clear old metrics (cleanup)
   cleanup() {
     const oneHourAgo = new Date(Date.now() - 3600000);
