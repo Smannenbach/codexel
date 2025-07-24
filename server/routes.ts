@@ -37,8 +37,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply performance monitoring middleware
   app.use(performanceOptimizer.middleware());
   
-  // Apply CDN optimization middleware
-  app.use(cdnMiddleware);
+  // Apply CDN optimization middleware (skip in development to avoid Vite conflicts)
+  if (process.env.NODE_ENV !== 'development') {
+    app.use(cdnMiddleware);
+  }
   
   // Apply caching middleware to API routes (5 minute cache)
   app.use('/api', cachingService.middleware(300000));
