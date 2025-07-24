@@ -11,8 +11,8 @@ import {
 import { cn } from '@/lib/utils';
 
 interface WorkspaceHeaderProps {
-  activeView: 'chat' | 'vibe-stack';
-  onViewChange: (view: 'chat' | 'vibe-stack') => void;
+  activeView: 'chat' | 'marketing';
+  onViewChange: (view: 'chat' | 'marketing') => void;
   projectName?: string;
   onAddVibeStack?: () => void;
 }

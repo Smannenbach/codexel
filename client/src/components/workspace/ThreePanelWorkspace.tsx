@@ -26,7 +26,8 @@ import {
   Zap,
   CircleCheckBig,
   Share2,
-  BarChart
+  BarChart,
+  MessageSquare
 } from 'lucide-react';
 import { AI_MODELS } from '@/lib/ai-models';
 import { apiRequest } from '@/lib/queryClient';
@@ -34,7 +35,10 @@ import { useToast } from '@/hooks/use-toast';
 import type { Agent, Message } from '@shared/schema';
 import ShareLayoutButton from './ShareLayoutButton';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import AISalesAgent from './AISalesAgent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { projectTemplates } from '@shared/templates';
+import { marketingStacks } from '@shared/marketing-stacks';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -91,6 +95,7 @@ export default function ThreePanelWorkspace({
   const [isResizing, setIsResizing] = useState(false);
   const [panelSizes, setPanelSizes] = useState<number[]>([20, 45, 35]);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAISalesAgent, setShowAISalesAgent] = useState(false);
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
   const [activeSnapLine, setActiveSnapLine] = useState<number | null>(null);
@@ -297,6 +302,16 @@ export default function ThreePanelWorkspace({
                 <p className="text-sm text-gray-400">Chat with GPT-4</p>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAISalesAgent(true)}
+                  className="text-purple-400 border-purple-400/30 hover:bg-purple-400/10 hover:text-purple-300"
+                  title="AI Sales Assistant"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  AI Assistant
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -603,6 +618,40 @@ export default function ThreePanelWorkspace({
                 // The ResizablePanelGroup will automatically save via autoSaveId
                 window.location.reload(); // Reload to apply new sizes
                 setShowAnalytics(false);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* AI Sales Agent Dialog */}
+      <Dialog open={showAISalesAgent} onOpenChange={setShowAISalesAgent}>
+        <DialogContent className="max-w-7xl h-[90vh] p-0 bg-gray-900 border-gray-800">
+          <div className="relative h-full">
+            <Button
+              onClick={() => setShowAISalesAgent(false)}
+              className="absolute top-4 right-4 z-50"
+              variant="outline"
+              size="sm"
+            >
+              Close
+            </Button>
+            <AISalesAgent
+              selectedTemplate={projectTemplates[0]} // Use first template as default
+              availableStacks={marketingStacks}
+              onStackSelection={(stacks) => {
+                console.log('Selected stacks:', stacks);
+                toast({
+                  title: "Marketing Stack Selected",
+                  description: `${stacks.length} tools added to your project`,
+                });
+              }}
+              onComplete={() => {
+                setShowAISalesAgent(false);
+                toast({
+                  title: "AI Assistant Complete",
+                  description: "Your personalized AI is ready to help!",
+                });
               }}
             />
           </div>
