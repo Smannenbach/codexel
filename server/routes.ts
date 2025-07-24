@@ -661,6 +661,14 @@ What specific type of website are you looking to create? (e.g., business, portfo
   const { registerLiveDeploymentRoutes } = await import('./routes/liveDeployment');
   registerLiveDeploymentRoutes(app);
 
+  // Register feedback routes
+  const { registerFeedbackRoutes } = await import('./routes/feedback');
+  registerFeedbackRoutes(app);
+
+  // Register onboarding routes
+  const { registerOnboardingRoutes } = await import('./routes/onboarding');
+  registerOnboardingRoutes(app);
+
   // Register snapshot routes
   const { registerSnapshotRoutes } = await import('./routes/snapshots');
   registerSnapshotRoutes(app);

@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 import { ErrorBoundary } from "@/components/workspace/ErrorBoundary";
 import Workspace from "@/pages/workspace";
 import Templates from "@/pages/templates";
@@ -51,6 +52,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
+            <FeedbackWidget />
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
