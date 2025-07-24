@@ -33,13 +33,15 @@ import {
   Eye,
   BarChart3,
   Settings,
-  X
+  X,
+  Volume2
 } from 'lucide-react';
 import { AI_MODELS } from '@/lib/ai-models';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Agent, Message } from '@shared/schema';
+import { audioManager } from '@/services/AudioManager';
 import ShareLayoutButton from './ShareLayoutButton';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import AISalesAgent from './AISalesAgent';
@@ -51,6 +53,8 @@ import { projectTemplates } from '@shared/templates';
 import { marketingStacks } from '@shared/marketing-stacks';
 import { WorkspaceSnapshots } from './WorkspaceSnapshots';
 import OneClickSnapshot, { useSnapshotShortcuts } from './OneClickSnapshot';
+import { AudioSettings } from '@/components/ui/audio-settings';
+import { useAudioFeedback } from '@/hooks/useAudioFeedback';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -108,6 +112,8 @@ export default function ThreePanelWorkspace({
   const [panelSizes, setPanelSizes] = useState<number[]>([20, 45, 35]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAISalesAgent, setShowAISalesAgent] = useState(false);
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
+  const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
   const [activeSnapLine, setActiveSnapLine] = useState<number | null>(null);
@@ -333,6 +339,7 @@ export default function ThreePanelWorkspace({
   const handleSendMessage = async () => {
     if (!inputValue.trim() && attachments.length === 0) return;
     
+    audioManager.playMessageSend();
     setIsLoading(true);
     try {
       // Use multimodal endpoint if attachments exist
@@ -446,12 +453,14 @@ export default function ThreePanelWorkspace({
           currentTask: 'Analyzing requirements and coordinating team',
           progress: 15
         };
+        audioManager.playAgentActivated('project-manager');
       }
       
       // Activate architect after a delay
       setTimeout(() => {
         const archIndex = updatedAgents.findIndex(a => a.role === 'architect');
         if (archIndex !== -1) {
+          audioManager.playAgentActivated('architect');
           setActiveAgents(prev => {
             const newAgents = [...prev];
             newAgents[archIndex] = {
@@ -662,7 +671,10 @@ export default function ThreePanelWorkspace({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowAISalesAgent(true)}
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowAISalesAgent(true);
+                  }}
                   className="text-purple-400 border-purple-400/30 hover:bg-purple-400/10 hover:text-purple-300"
                   title="AI Sales Assistant"
                 >
@@ -672,11 +684,26 @@ export default function ThreePanelWorkspace({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setShowAnalytics(true)}
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowAnalytics(true);
+                  }}
                   className="text-gray-400 hover:text-white"
                   title="View Analytics"
                 >
                   <BarChart className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    setShowAudioSettings(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Audio Settings"
+                >
+                  <Volume2 className="w-5 h-5" />
                 </Button>
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-700">
@@ -798,7 +825,10 @@ export default function ThreePanelWorkspace({
                 className="flex-1 min-h-[40px] max-h-[120px] bg-gray-800 border-gray-700 text-white resize-none"
               />
               <Button 
-                onClick={handleSendMessage} 
+                onClick={(e) => {
+                  audioFeedback.playButtonClick(e.currentTarget);
+                  handleSendMessage();
+                }} 
                 disabled={isLoading || (!inputValue.trim() && attachments.length === 0)}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
@@ -980,6 +1010,19 @@ export default function ThreePanelWorkspace({
         </div>
       )}
       
+      {/* Audio Settings Dialog */}
+      <Dialog open={showAudioSettings} onOpenChange={setShowAudioSettings}>
+        <DialogContent className="max-w-2xl bg-gray-900 border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Volume2 className="w-6 h-6 text-purple-500" />
+              Audio Settings
+            </DialogTitle>
+          </DialogHeader>
+          <AudioSettings />
+        </DialogContent>
+      </Dialog>
+
       {/* Analytics Dialog */}
       <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
         <DialogContent className="max-w-5xl max-h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">

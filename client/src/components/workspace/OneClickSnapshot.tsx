@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { WorkspaceSnapshot } from '@shared/schema';
+import { audioManager } from '@/services/AudioManager';
 
 interface OneClickSnapshotProps {
   projectId: number;
@@ -126,10 +127,12 @@ export default function OneClickSnapshot({
   });
 
   const handleQuickSave = () => {
+    audioManager.playSnapshotSave();
     quickSaveMutation.mutate();
   };
 
   const handleQuickRestore = (snapshotId: number) => {
+    audioManager.playSnapshotRestore();
     quickRestoreMutation.mutate(snapshotId);
   };
 
@@ -297,6 +300,7 @@ export function useSnapshotShortcuts(
           description: "Saving workspace snapshot...",
           duration: 2000,
         });
+        audioManager.playSnapshotSave();
         onQuickSave();
       }
       
@@ -308,6 +312,7 @@ export function useSnapshotShortcuts(
           description: "Restoring latest workspace snapshot...",
           duration: 2000,
         });
+        audioManager.playSnapshotRestore();
         onQuickRestore();
       }
     };
