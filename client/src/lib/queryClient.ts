@@ -2,7 +2,12 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
+    let text;
+    try {
+      text = (await res.text()) || res.statusText;
+    } catch (e) {
+      text = res.statusText || 'Network error';
+    }
     throw new Error(`${res.status}: ${text}`);
   }
 }
@@ -49,9 +54,11 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
+      gcTime: 5 * 60 * 1000, // 5 minutes
     },
     mutations: {
       retry: false,
+      gcTime: 5 * 60 * 1000,
     },
   },
 });

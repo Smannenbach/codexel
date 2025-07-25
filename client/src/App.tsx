@@ -52,9 +52,13 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="codexel-ui-theme">
           <TooltipProvider>
-            <Toaster />
-            <Router />
-            <FeedbackWidget />
+            <div className="min-h-screen bg-black">
+              <Toaster />
+              <Router />
+              <ErrorBoundary fallback={<div />}>
+                <FeedbackWidget />
+              </ErrorBoundary>
+            </div>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
