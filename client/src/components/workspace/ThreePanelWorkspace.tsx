@@ -37,7 +37,8 @@ import {
   Volume2,
   Users,
   Rocket as RocketIcon,
-  GitBranch
+  GitBranch,
+  Download
 } from 'lucide-react';
 import { AI_MODELS } from '@/lib/ai-models';
 import { apiRequest } from '@/lib/queryClient';
@@ -430,6 +431,21 @@ export default function ThreePanelWorkspace({
     toast({
       title: "Website Built Successfully!",
       description: "Your website is ready in the preview panel.",
+    });
+  };
+  
+  const handleDownloadConversation = () => {
+    const downloadUrl = `/api/conversations/export/${projectId}`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `codexel-conversation-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Conversation Downloaded",
+      description: "Your conversation history has been saved to your downloads folder.",
     });
   };
 
@@ -852,6 +868,18 @@ export default function ThreePanelWorkspace({
                   title="Phase 11: Advanced Integration"
                 >
                   <Settings className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
+                    handleDownloadConversation();
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Download Conversation History"
+                >
+                  <Download className="w-5 h-5" />
                 </Button>
                 <Button
                   variant="ghost"

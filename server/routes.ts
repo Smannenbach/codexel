@@ -1689,6 +1689,69 @@ What would you like me to add or modify next?`;
     return files;
   }
 
+  // Conversation Export API endpoint
+  app.get('/api/conversations/export/:projectId', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      // Get all messages for the project
+      const messages = await storage.getMessagesByProject(parseInt(projectId));
+      const project = await storage.getProject(parseInt(projectId));
+      
+      if (!messages || !project) {
+        return res.status(404).json({ error: 'Project or messages not found' });
+      }
+      
+      // Format conversation data
+      const conversationData = {
+        project: {
+          id: project.id,
+          name: project.name,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt
+        },
+        exportDate: new Date().toISOString(),
+        messageCount: messages.length,
+        conversations: messages.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          model: msg.model || 'unknown',
+          timestamp: msg.createdAt || new Date(),
+          hasAttachments: false // No attachments field in current schema
+        }))
+      };
+      
+      // Create formatted text export
+      let textExport = `CODEXEL.AI CONVERSATION EXPORT\n`;
+      textExport += `=====================================\n\n`;
+      textExport += `Project: ${project.name}\n`;
+      textExport += `Export Date: ${new Date().toLocaleString()}\n`;
+      textExport += `Total Messages: ${messages.length}\n\n`;
+      textExport += `=====================================\n\n`;
+      
+      messages.forEach((msg, index) => {
+        const timestamp = new Date(msg.createdAt || new Date()).toLocaleString();
+        const sender = msg.role === 'user' ? 'YOU' : 'AI ASSISTANT';
+        
+        textExport += `[${index + 1}] ${sender} - ${timestamp}\n`;
+        textExport += `${msg.content}\n\n`;
+        textExport += `---\n\n`;
+      });
+      
+      // Set headers for file download
+      const filename = `codexel-conversation-${project.name.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.txt`;
+      
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(textExport);
+      
+    } catch (error) {
+      console.error('Conversation export error:', error);
+      res.status(500).json({ error: 'Failed to export conversation' });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Initialize real-time collaboration WebSocket server
