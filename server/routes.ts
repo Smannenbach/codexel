@@ -1371,6 +1371,10 @@ What specific type of website are you looking to create? (e.g., business, portfo
   const { registerPhase11Routes } = await import('./routes/phase11-routes');
   registerPhase11Routes(app);
 
+  // Register Phase 12 next-generation innovation features
+  const { registerPhase12Routes } = await import('./routes/phase12-routes');
+  registerPhase12Routes(app);
+
   const httpServer = createServer(app);
   
   // Initialize real-time collaboration WebSocket server

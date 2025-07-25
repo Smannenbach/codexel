@@ -19,6 +19,7 @@ export interface SwarmAgent {
   };
   knowledge: Map<string, any>;
   collaboratingWith: string[];
+  lastActive: Date;
 }
 
 export interface SwarmTask {
@@ -135,7 +136,8 @@ class MultiAgentSwarmService extends EventEmitter {
           lastActive: new Date()
         },
         knowledge: new Map(),
-        collaboratingWith: []
+        collaboratingWith: [],
+        lastActive: new Date()
       };
       this.agents.set(agent.id, agent);
     });
@@ -440,7 +442,7 @@ class MultiAgentSwarmService extends EventEmitter {
       sessionId: `knowledge-${Date.now()}`,
       participants: agents.map(agent => agent.id),
       type: 'knowledge-sharing',
-      insights: agents.map(agent => ({
+      insights: agents.map((agent: SwarmAgent) => ({
         agentId: agent.id,
         sharedKnowledge: Array.from(agent.knowledge.keys()).slice(0, 3),
         currentTask: agent.currentTask
@@ -499,13 +501,13 @@ class MultiAgentSwarmService extends EventEmitter {
   async optimizeSwarmConfiguration(): Promise<void> {
     // Analyze current performance and optimize agent allocation
     const performance = this.getAgentPerformance();
-    const lowPerformers = performance.filter(agent => agent.performance.successRate < 0.8);
+    const lowPerformers = performance.filter((agent: any) => agent.performance.successRate < 0.8);
     
     if (lowPerformers.length > 0) {
       console.log('🔧 Optimizing swarm configuration for', lowPerformers.length, 'agents');
       
       // Retrain low performers
-      lowPerformers.forEach(agentData => {
+      lowPerformers.forEach((agentData: any) => {
         const agent = this.agents.get(agentData.id);
         if (agent) {
           agent.status = 'learning';
