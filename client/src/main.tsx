@@ -27,25 +27,38 @@ window.addEventListener('error', (event) => {
   });
 });
 
-// Ensure root element exists
+// Add a simple loading indicator first
 const rootElement = document.getElementById("root");
 if (rootElement) {
-  try {
-    createRoot(rootElement).render(<App />);
-  } catch (error) {
-    console.error('Failed to render app:', error);
-    rootElement.innerHTML = `
-      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a; color: white; font-family: system-ui;">
-        <div style="text-align: center; max-width: 500px; padding: 2rem;">
-          <h1 style="font-size: 2rem; margin-bottom: 1rem;">Codexel.ai</h1>
-          <p style="margin-bottom: 2rem; opacity: 0.8;">Loading application...</p>
-          <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
-            Reload Page
-          </button>
-        </div>
+  rootElement.innerHTML = `
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a; color: white; font-family: system-ui;">
+      <div style="text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 1rem;">Loading Codexel.ai...</h1>
       </div>
-    `;
-  }
+    </div>
+  `;
+  
+  // Then try to render React
+  setTimeout(() => {
+    try {
+      createRoot(rootElement).render(<App />);
+    } catch (error) {
+      console.error('Failed to render app:', error);
+      rootElement.innerHTML = `
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a; color: white; font-family: system-ui;">
+          <div style="text-align: center; max-width: 500px; padding: 2rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 1rem;">Codexel.ai</h1>
+            <p style="margin-bottom: 2rem; opacity: 0.8;">There was an error loading the application.</p>
+            <p style="margin-bottom: 2rem; font-size: 0.875rem; opacity: 0.6;">Error: ${error.message || 'Unknown error'}</p>
+            <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+              Reload Page
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  }, 100);
 } else {
   console.error('Root element not found');
+  document.body.innerHTML = '<div style="color: white; text-align: center; padding: 2rem;">Root element not found. Please refresh the page.</div>';
 }

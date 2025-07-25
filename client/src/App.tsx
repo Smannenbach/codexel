@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+// import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 import { ErrorBoundary } from "@/components/workspace/ErrorBoundary";
 import Workspace from "@/pages/workspace";
 import Templates from "@/pages/templates";
@@ -23,12 +23,14 @@ import SharedWorkspaceView from "@/components/workspace/SharedWorkspaceView";
 import ProductionDashboard from "@/pages/ProductionDashboard";
 import MarketingLanding from "@/pages/marketing-landing";
 import TestPage from "@/pages/TestPage";
+import SimpleLanding from "@/pages/SimpleLanding";
 
 function Router() {
   try {
     return (
       <Switch>
-        <Route path="/" component={MarketingLanding} />
+        <Route path="/" component={SimpleLanding} />
+        <Route path="/marketing" component={MarketingLanding} />
         <Route path="/test-simple" component={TestPage} />
         <Route path="/home" component={Home} />
         <Route path="/workspace" component={Workspace} />
