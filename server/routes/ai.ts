@@ -138,6 +138,11 @@ router.post('/chat', async (req, res) => {
 function getIntelligentResponse(message: string, context: any): string {
   const lowerMessage = message.toLowerCase();
   
+  // Check if user is asking to build a website
+  if (lowerMessage.includes('build') || lowerMessage.includes('create') || lowerMessage.includes('website') || lowerMessage.includes('site') || lowerMessage.includes('app')) {
+    return generateWebsiteCode(message, context);
+  }
+  
   if (lowerMessage.includes('loan officer') || lowerMessage.includes('mortgage')) {
     return `Perfect! I'll help you create a professional loan officer website with AI-powered features. Here's what we'll build:
 
