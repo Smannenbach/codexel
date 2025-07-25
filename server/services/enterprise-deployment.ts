@@ -408,12 +408,14 @@ class EnterpriseDeploymentService {
     
     // Use production deployer service
     try {
-      await productionDeployer.deployToProduction({
-        domain: environment.config.domain || environment.url,
-        environment: environment.type,
-        ssl: environment.config.ssl,
-        cdn: environment.config.cdn
-      });
+      await productionDeployer.deploy(
+        environment.config.domain || environment.url,
+        {
+          environment: environment.type,
+          ssl: environment.config.ssl,
+          cdn: environment.config.cdn
+        }
+      );
       
       this.addDeploymentLog(deployment, 'info', 'Application deployed successfully', 'deploy');
       
@@ -438,14 +440,14 @@ class EnterpriseDeploymentService {
 
   private async collectPerformanceMetrics(environment: DeploymentEnvironment): Promise<PerformanceMetrics> {
     // Get real performance metrics
-    const metrics = performanceOptimizer.getPerformanceMetrics();
+    const metrics = performanceOptimizer.getCurrentMetrics();
     
     return {
-      loadTime: metrics.responseTime || 1200,
+      loadTime: metrics?.responseTime || 1200,
       firstContentfulPaint: 800,
       largestContentfulPaint: 1500,
       cumulativeLayoutShift: 0.1,
-      memoryUsage: metrics.memoryUsage || 256,
+      memoryUsage: metrics?.memoryUsage || 256,
       bundleSize: 2.4
     };
   }
@@ -532,8 +534,8 @@ class EnterpriseDeploymentService {
     this.environments.forEach(environment => {
       // Update health metrics with real data
       environment.health = {
-        cpu: performanceMetrics.cpuUsage || Math.random() * 60 + 10,
-        memory: performanceMetrics.memoryUsage || Math.random() * 70 + 20,
+        cpu: performanceMetrics?.cpuUsage || Math.random() * 60 + 10,
+        memory: performanceMetrics?.memoryUsage || Math.random() * 70 + 20,
         disk: Math.random() * 50 + 15,
         network: Math.random() * 20 + 80,
         uptime: Math.random() * 1 + 99
