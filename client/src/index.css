@@ -15,10 +15,24 @@
 /* Fix bottom screen layout issues */
 body, html, #root {
   height: 100vh;
+  max-height: 100vh;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .workspace-container {
+  height: 100vh;
+  max-height: 100vh;
+}
+
+/* Ensure all panels fill height properly */
+[data-panel-group] {
+  height: 100vh;
+  max-height: 100vh;
+}
+
+[data-panel] {
   height: 100vh;
   max-height: 100vh;
 }

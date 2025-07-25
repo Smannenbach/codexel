@@ -117,7 +117,7 @@ export default function Workspace() {
 
   if (!selectedProjectId || !projectData) {
     return (
-      <div className="flex h-screen">
+      <div className="flex h-screen max-h-screen overflow-hidden">
         <ProjectSidebar
           projects={projects}
           selectedProjectId={selectedProjectId}
@@ -133,14 +133,16 @@ export default function Workspace() {
   }
 
   return (
-    <ThreePanelWorkspace
-      projectId={selectedProjectId}
-      agents={projectData.agents || []}
-      messages={projectData.messages || []}
-      onSendMessage={async (content: string, attachments?: File[]) => {
-        await handleSendMessage(content);
-        // TODO: Handle file attachments when backend supports it
-      }}
-    />
+    <div className="h-screen max-h-screen overflow-hidden">
+      <ThreePanelWorkspace
+        projectId={selectedProjectId}
+        agents={projectData.agents || []}
+        messages={projectData.messages || []}
+        onSendMessage={async (content: string, attachments?: File[]) => {
+          await handleSendMessage(content);
+          // TODO: Handle file attachments when backend supports it
+        }}
+      />
+    </div>
   );
 }
