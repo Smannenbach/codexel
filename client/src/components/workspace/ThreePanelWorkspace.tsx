@@ -68,6 +68,7 @@ import CollaborationPanel from './CollaborationPanel';
 import EnterpriseDeploymentPanel from './EnterpriseDeploymentPanel';
 import { Phase10Panel } from './Phase10Panel';
 import { Phase11Panel } from './Phase11Panel';
+import ProgressIndicator from './ProgressIndicator';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -136,6 +137,7 @@ export default function ThreePanelWorkspace({
   const [showEnhancedDeployment, setShowEnhancedDeployment] = useState(false);
   const [showPhase10Panel, setShowPhase10Panel] = useState(false);
   const [showPhase11Panel, setShowPhase11Panel] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
   const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
@@ -362,6 +364,14 @@ export default function ThreePanelWorkspace({
   const handleSendMessage = async () => {
     if (!inputValue.trim() && attachments.length === 0) return;
     
+    // Check for build commands and show progress
+    const buildKeywords = ['build', 'create', 'make', 'website', 'app', 'landing', 'page'];
+    const shouldShowProgress = buildKeywords.some(keyword => inputValue.toLowerCase().includes(keyword));
+    
+    if (shouldShowProgress) {
+      setShowProgress(true);
+    }
+    
     audioManager.playMessageSend();
     setIsLoading(true);
     try {
@@ -413,6 +423,14 @@ export default function ThreePanelWorkspace({
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleProgressComplete = () => {
+    setShowProgress(false);
+    toast({
+      title: "Website Built Successfully!",
+      description: "Your website is ready in the preview panel.",
+    });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -870,6 +888,15 @@ export default function ThreePanelWorkspace({
 
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-4">
+            {/* Progress Indicator */}
+            {showProgress && (
+              <div className="mb-4">
+                <ProgressIndicator
+                  isVisible={showProgress}
+                  onComplete={handleProgressComplete}
+                />
+              </div>
+            )}
             <div className="space-y-4">
               {messages.length === 0 ? (
                 <div className="text-center py-12">
