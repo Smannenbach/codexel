@@ -22,28 +22,43 @@ import TestWorkspace from "@/pages/TestWorkspace";
 import SharedWorkspaceView from "@/components/workspace/SharedWorkspaceView";
 import ProductionDashboard from "@/pages/ProductionDashboard";
 import MarketingLanding from "@/pages/marketing-landing";
+import TestPage from "@/pages/TestPage";
 
 function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={MarketingLanding} />
-      <Route path="/home" component={Home} />
-      <Route path="/workspace" component={Workspace} />
-      <Route path="/templates" component={Templates} />
-      <Route path="/demo" component={Demo} />
-      <Route path="/marketplace" component={LayoutMarketplace} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/payment-success" component={PaymentSuccess} />
-      <Route path="/test" component={TestWorkspace} />
-      <Route path="/shared-workspace/:id" component={SharedWorkspaceView} />
-      <Route path="/production" component={ProductionDashboard} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/disclosures" component={Disclosures} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  try {
+    return (
+      <Switch>
+        <Route path="/" component={TestPage} />
+        <Route path="/marketing" component={MarketingLanding} />
+        <Route path="/home" component={Home} />
+        <Route path="/workspace" component={Workspace} />
+        <Route path="/templates" component={Templates} />
+        <Route path="/demo" component={Demo} />
+        <Route path="/marketplace" component={LayoutMarketplace} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/checkout" component={Checkout} />
+        <Route path="/payment-success" component={PaymentSuccess} />
+        <Route path="/test" component={TestWorkspace} />
+        <Route path="/shared-workspace/:id" component={SharedWorkspaceView} />
+        <Route path="/production" component={ProductionDashboard} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/disclosures" component={Disclosures} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  } catch (error) {
+    console.error('Router error:', error);
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl mb-4">Loading Error</h1>
+        <p className="mb-4">There was an error loading the application.</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-600 rounded">
+          Reload Page
+        </button>
+      </div>
+    </div>;
+  }
 }
 
 function App() {

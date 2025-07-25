@@ -52,9 +52,16 @@ export default function FeedbackWidget() {
   });
 
   // Get widget configuration
-  const { data: config } = useQuery<FeedbackConfig>({
-    queryKey: ['/api/feedback/widget/config']
+  const { data: config, error } = useQuery<FeedbackConfig>({
+    queryKey: ['/api/feedback/widget/config'],
+    enabled: true,
+    retry: 1
   });
+
+  // Don't render widget if there's an error or it's disabled
+  if (error || !config?.enabled) {
+    return null;
+  }
 
   // Submit feedback mutation
   const submitFeedbackMutation = useMutation({
@@ -144,7 +151,7 @@ export default function FeedbackWidget() {
     setIsOpen(false);
   };
 
-  if (!config?.enabled) return null;
+
 
   return (
     <>

@@ -4,14 +4,27 @@ import "./index.css";
 
 // Global error handling for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
-  console.warn('Unhandled promise rejection:', event.reason);
+  console.error('Unhandled promise rejection:', event.reason);
+  if (event.reason && typeof event.reason === 'object') {
+    console.error('Rejection details:', {
+      message: event.reason.message,
+      stack: event.reason.stack,
+      promise: event.promise
+    });
+  }
   // Prevent the default browser error reporting
   event.preventDefault();
 });
 
 // Global error handling for JavaScript errors
 window.addEventListener('error', (event) => {
-  console.warn('JavaScript error:', event.error);
+  console.error('JavaScript error:', event.error);
+  console.error('Error details:', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  });
 });
 
 // Ensure root element exists
