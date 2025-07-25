@@ -58,7 +58,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { projectTemplates } from '@shared/templates';
 import { marketingStacks } from '@shared/marketing-stacks';
 import { WorkspaceSnapshots } from './WorkspaceSnapshots';
-import OneClickSnapshot, { useSnapshotShortcuts } from './OneClickSnapshot';
+import { useSnapshotShortcuts } from './OneClickSnapshot';
 import { AudioSettings } from '@/components/ui/audio-settings';
 import { useAudioFeedback } from '@/hooks/useAudioFeedback';
 import { AdvancedCodeGeneration } from './AdvancedCodeGeneration';
@@ -438,7 +438,7 @@ export default function ThreePanelWorkspace({
   useEffect(() => {
     const loadWorkspaceConfig = async () => {
       // Add a small delay to ensure styles are loaded and prevent FOUC
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // The autoSaveId handles basic panel sizes, but we can extend it
       const savedConfig = localStorage.getItem('workspace-advanced-config');
@@ -617,9 +617,7 @@ export default function ThreePanelWorkspace({
             <p className="text-xs text-gray-500 mt-1">41%</p>
           </div>
           
-
-          
-          <ScrollArea className="h-[calc(100%-120px)] p-4">
+          <ScrollArea className="h-[calc(100%-100px)] p-4">
             <div className="space-y-2">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                 Active Agents ({activeAgents.filter(a => a.status === 'active').length})
@@ -1245,26 +1243,7 @@ export default function ThreePanelWorkspace({
         </DialogContent>
       </Dialog>
 
-      {/* Floating One-Click Snapshot */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <OneClickSnapshot
-          projectId={projectId}
-          getCurrentWorkspaceState={getCurrentWorkspaceState}
-          onRestore={(snapshotData) => {
-            // Restore workspace state
-            if (snapshotData.panelSizes) {
-              setPanelSizes(snapshotData.panelSizes);
-            }
-            if (snapshotData.previewDevice) {
-              setPreviewDevice(snapshotData.previewDevice);
-            }
-            if (snapshotData.selectedModel) {
-              setSelectedModel(snapshotData.selectedModel);
-            }
-          }}
-          className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-xl p-4 shadow-2xl max-w-sm"
-        />
-      </div>
+
 
       {/* Workspace Snapshots Dialog */}
       <Dialog open={showSnapshots} onOpenChange={setShowSnapshots}>

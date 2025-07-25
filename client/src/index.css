@@ -4,11 +4,12 @@
 
 /* Prevent flash of unstyled content (FOUC) */
 .workspace-container {
-  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .workspace-container.loaded {
-  visibility: visible;
+  opacity: 1;
 }
 
 /* Enhanced Resizable Handle Styles */
