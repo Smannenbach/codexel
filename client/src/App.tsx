@@ -24,12 +24,14 @@ import ProductionDashboard from "@/pages/ProductionDashboard";
 import MarketingLanding from "@/pages/marketing-landing";
 import TestPage from "@/pages/TestPage";
 import SimpleLanding from "@/pages/SimpleLanding";
+import SimpleTest from "@/pages/simple-test";
 
 function Router() {
   try {
     return (
       <Switch>
-        <Route path="/" component={MarketingLanding} />
+        <Route path="/" component={SimpleTest} />
+        <Route path="/marketing-test" component={MarketingLanding} />
         <Route path="/landing" component={SimpleLanding} />
         <Route path="/marketing" component={MarketingLanding} />
         <Route path="/test-simple" component={TestPage} />
