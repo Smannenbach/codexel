@@ -12,13 +12,21 @@
   opacity: 1;
 }
 
-/* Fix bottom screen layout issues */
-body, html, #root {
+/* Fix bottom screen layout issues - only apply to workspace */
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Workspace-specific height constraints */
+.workspace-page {
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
-  margin: 0;
-  padding: 0;
 }
 
 .workspace-container {
@@ -26,13 +34,19 @@ body, html, #root {
   max-height: 100vh;
 }
 
-/* Ensure all panels fill height properly */
-[data-panel-group] {
+/* Only apply panel height constraints within workspace */
+.workspace-page .workspace-container {
   height: 100vh;
   max-height: 100vh;
 }
 
-[data-panel] {
+/* Ensure all panels fill height properly - only in workspace */
+.workspace-page [data-panel-group] {
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.workspace-page [data-panel] {
   height: 100vh;
   max-height: 100vh;
 }
