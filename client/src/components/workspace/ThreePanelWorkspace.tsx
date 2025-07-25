@@ -66,6 +66,7 @@ import AutonomousAgentPanel from './AutonomousAgentPanel';
 import CollaborationPanel from './CollaborationPanel';
 import EnterpriseDeploymentPanel from './EnterpriseDeploymentPanel';
 import { Phase10Panel } from './Phase10Panel';
+import { Phase11Panel } from './Phase11Panel';
 
 interface ThreePanelWorkspaceProps {
   projectId: number;
@@ -132,6 +133,7 @@ export default function ThreePanelWorkspace({
   const [showEnterpriseAnalytics, setShowEnterpriseAnalytics] = useState(false);
   const [showEnhancedDeployment, setShowEnhancedDeployment] = useState(false);
   const [showPhase10Panel, setShowPhase10Panel] = useState(false);
+  const [showPhase11Panel, setShowPhase11Panel] = useState(false);
   const audioFeedback = useAudioFeedback();
   const [lastPanelFocus, setLastPanelFocus] = useState<{ panel: string; time: number } | null>(null);
   const [snapIndicators, setSnapIndicators] = useState<number[]>([]);
@@ -813,6 +815,18 @@ export default function ThreePanelWorkspace({
                   size="icon"
                   onClick={(e) => {
                     audioFeedback.playButtonClick(e.currentTarget);
+                    setShowPhase11Panel(true);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                  title="Phase 11: Advanced Integration"
+                >
+                  <Settings className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    audioFeedback.playButtonClick(e.currentTarget);
                     setShowEnhancedDeployment(true);
                   }}
                   className="text-gray-400 hover:text-white"
@@ -1370,6 +1384,21 @@ export default function ThreePanelWorkspace({
           </DialogHeader>
           <div className="mt-4">
             <Phase10Panel />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phase 11: Advanced Integration & Ecosystem Dialog */}
+      <Dialog open={showPhase11Panel} onOpenChange={setShowPhase11Panel}>
+        <DialogContent className="max-w-7xl h-[90vh] bg-gray-900 border-gray-800 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Settings className="w-6 h-6 text-blue-500" />
+              Phase 11: Advanced Integration & Ecosystem
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Phase11Panel />
           </div>
         </DialogContent>
       </Dialog>

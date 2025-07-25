@@ -45,7 +45,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', rateLimiters.general);
   
   // Apply performance monitoring middleware
-  app.use(performanceOptimizer.middleware());
+  const { performanceMiddleware } = await import('./services/performance-optimizer');
+  app.use(performanceMiddleware());
   
   // Apply CDN optimization middleware (skip in development to avoid Vite conflicts)
   if (process.env.NODE_ENV !== 'development') {
@@ -1365,6 +1366,10 @@ What specific type of website are you looking to create? (e.g., business, portfo
 
   // Register Phase 10 advanced features
   registerPhase10Routes(app);
+
+  // Register Phase 11 advanced integration features
+  const { registerPhase11Routes } = await import('./routes/phase11-routes');
+  registerPhase11Routes(app);
 
   const httpServer = createServer(app);
   
