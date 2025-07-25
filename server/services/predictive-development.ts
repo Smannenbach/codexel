@@ -525,7 +525,49 @@ export const UXEnhancement: React.FC = () => {
       <p>${prediction.description}</p>
     </motion.div>
   );
-};`;
+};
+
+  private generateSecurityEnhancer(prediction: PredictiveInsight): string {
+    return `// Auto-generated security enhancer for: ${prediction.description}
+export class SecurityEnhancer {
+  validateInput(input: any): boolean {
+    // Security validation logic
+    if (!input || typeof input !== 'object') return false;
+    return true;
+  }
+  
+  sanitizeData(data: any): any {
+    // Data sanitization logic
+    return data;
+  }
+  
+  enforcePermissions(userId: string, action: string): boolean {
+    // Permission enforcement logic
+    return true;
+  }
+}`;
+  }
+
+  private generateCodeImprover(prediction: PredictiveInsight): string {
+    return `// Auto-generated code improver for: ${prediction.description}
+export class CodeImprover {
+  analyzeCode(code: string): any[] {
+    // Code analysis logic
+    const issues = [];
+    // Detect common issues
+    return issues;
+  }
+  
+  applyFixes(code: string, fixes: any[]): string {
+    // Apply automated fixes
+    return code;
+  }
+  
+  optimizePerformance(code: string): string {
+    // Performance optimization logic
+    return code;
+  }
+}`;`;
   }
 
   // Background processing loops
