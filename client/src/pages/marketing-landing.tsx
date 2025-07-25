@@ -155,7 +155,7 @@ const stats = [
   { number: "24/7", label: "AI Support" }
 ];
 
-export default function MarketingLanding() {
+function MarketingLanding() {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -496,3 +496,5 @@ export default function MarketingLanding() {
     </div>
   );
 }
+
+export default MarketingLanding;
