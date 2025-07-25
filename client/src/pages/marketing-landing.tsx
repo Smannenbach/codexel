@@ -21,9 +21,16 @@ import {
   Play,
   Award,
   Target,
-  Clock
+  Clock,
+  Home,
+  Scale,
+  Stethoscope,
+  Building2,
+  ShoppingCart,
+  Hotel
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { projectTemplates } from '@shared/templates';
 
 interface Feature {
   icon: React.ComponentType<any>;
@@ -185,6 +192,9 @@ function MarketingLanding() {
             <button onClick={() => scrollToSection('features')} className="text-gray-300 hover:text-white transition-colors">
               Features
             </button>
+            <button onClick={() => scrollToSection('templates')} className="text-gray-300 hover:text-white transition-colors">
+              Templates
+            </button>
             <button onClick={() => scrollToSection('pricing')} className="text-gray-300 hover:text-white transition-colors">
               Pricing
             </button>
@@ -311,8 +321,110 @@ function MarketingLanding() {
         </div>
       </section>
 
+      {/* Templates Section */}
+      <section id="templates" className="py-20 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Industry-Specific Templates
+              <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Built for Your Business
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Choose from 50+ professionally designed templates for every industry. 
+              Each template includes specialized features, compliance requirements, and conversion optimization.
+            </p>
+          </div>
+
+          {/* Template Categories */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {[
+              { name: 'Real Estate', icon: Home, count: projectTemplates.filter(t => t.category === 'Real Estate').length, color: 'from-blue-500 to-cyan-500' },
+              { name: 'Legal Services', icon: Scale, count: projectTemplates.filter(t => t.category === 'Legal Services').length, color: 'from-amber-500 to-orange-500' },
+              { name: 'Healthcare', icon: Stethoscope, count: projectTemplates.filter(t => t.category === 'Healthcare').length, color: 'from-green-500 to-emerald-500' },
+              { name: 'Financial Services', icon: TrendingUp, count: projectTemplates.filter(t => t.category === 'Financial Services').length, color: 'from-purple-500 to-violet-500' },
+              { name: 'Technology', icon: Building2, count: projectTemplates.filter(t => t.category === 'Technology').length, color: 'from-indigo-500 to-blue-500' },
+              { name: 'Hospitality', icon: Hotel, count: projectTemplates.filter(t => t.category === 'Hospitality').length, color: 'from-pink-500 to-rose-500' }
+            ].map((category, index) => (
+              <Card key={index} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700 transition-all duration-300 hover:scale-105 cursor-pointer group">
+                <CardHeader className="text-center">
+                  <div className={cn(
+                    "w-16 h-16 rounded-xl bg-gradient-to-r mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110",
+                    category.color
+                  )}>
+                    <category.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl mb-2">{category.name}</CardTitle>
+                  <div className="text-2xl font-bold text-purple-400">{category.count}+ Templates</div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 text-center">Professional templates designed specifically for {category.name.toLowerCase()} businesses</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Featured Templates */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-bold text-center mb-8">Featured Templates</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {projectTemplates.slice(0, 6).map((template, index) => (
+                <Card key={index} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700 transition-all duration-300 hover:scale-105">
+                  <CardHeader>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="text-2xl">{template.icon}</div>
+                      <div>
+                        <CardTitle className="text-lg leading-tight">{template.name}</CardTitle>
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {template.category}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300 text-sm mb-3 line-clamp-2">{template.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <Clock className="w-3 h-3" />
+                        {template.estimatedTime}
+                      </div>
+                      <Badge 
+                        className={cn(
+                          "text-xs",
+                          template.difficulty === 'beginner' && "bg-green-500/20 text-green-300 border-green-500/30",
+                          template.difficulty === 'intermediate' && "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                          template.difficulty === 'advanced' && "bg-red-500/20 text-red-300 border-red-500/30"
+                        )}
+                      >
+                        {template.difficulty}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA to Templates Page */}
+          <div className="text-center">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-6 text-lg"
+              onClick={() => window.location.href = '/templates'}
+            >
+              View All Templates
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <p className="text-gray-400 mt-4">
+              Browse 50+ templates across all industries
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-6">
+      <section id="testimonials" className="py-20 px-6 bg-gradient-to-b from-gray-950 to-gray-900">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -460,9 +572,9 @@ function MarketingLanding() {
             <div>
               <h3 className="font-semibold mb-4">Product</h3>
               <div className="space-y-2 text-gray-400">
-                <div>Features</div>
-                <div>Pricing</div>
-                <div>Templates</div>
+                <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Features</button>
+                <button onClick={() => scrollToSection('pricing')} className="hover:text-white transition-colors">Pricing</button>
+                <button onClick={() => window.location.href = '/templates'} className="hover:text-white transition-colors">Templates</button>
                 <div>Integrations</div>
               </div>
             </div>
