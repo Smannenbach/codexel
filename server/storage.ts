@@ -1,19 +1,30 @@
 import { db } from './db';
-import { users, projects, agents, messages, checklistItems, projectAgents, workspaceLayouts, layoutRatings, workspaceAnalytics, layoutRecommendations, workspaceSnapshots } from '@shared/schema';
+import { users, projects, agents, messages, checklistItems, projectAgents, workspaceLayouts, layoutRatings, workspaceAnalytics, layoutRecommendations, workspaceSnapshots, usageStats, fileAttachments, aiUsage } from '@shared/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import type { User, InsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem, WorkspaceLayout, InsertWorkspaceLayout, LayoutRating, InsertLayoutRating, WorkspaceAnalytic, InsertWorkspaceAnalytic, LayoutRecommendation, InsertLayoutRecommendation, WorkspaceSnapshot, InsertWorkspaceSnapshot } from '@shared/schema';
+import type { User, InsertUser, UpsertUser, Project, InsertProject, Agent, InsertAgent, Message, InsertMessage, ChecklistItem, InsertChecklistItem, WorkspaceLayout, InsertWorkspaceLayout, LayoutRating, InsertLayoutRating, WorkspaceAnalytic, InsertWorkspaceAnalytic, LayoutRecommendation, InsertLayoutRecommendation, WorkspaceSnapshot, InsertWorkspaceSnapshot, UsageStats, InsertUsageStats, FileAttachment, InsertFileAttachment, AiUsage, InsertAiUsage } from '@shared/schema';
 
 export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
+  // User operations (Replit Auth compatible)
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  updateUserUsage(userId: string, usage: Partial<User['usageQuota']>): Promise<void>;
 
   // Project operations
-  getProjects(userId: number): Promise<Project[]>;
-  getProject(id: number): Promise<Project | undefined>;
+  getProjects(userId: string): Promise<Project[]>;
+  getProject(id: number, userId?: string): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<Project>): Promise<void>;
+
+  // Usage tracking operations
+  createUsageStats(usage: InsertUsageStats): Promise<UsageStats>;
+  getUserUsageStats(userId: string, period?: string): Promise<UsageStats[]>;
+  trackAiUsage(usage: InsertAiUsage): Promise<AiUsage>;
+  
+  // File attachment operations
+  createFileAttachment(attachment: InsertFileAttachment): Promise<FileAttachment>;
+  getFileAttachments(userId: string, projectId?: number): Promise<FileAttachment[]>;
+  deleteFileAttachment(id: number, userId: string): Promise<boolean>;
 
   // Agent operations
   getAgentsByProject(projectId: number): Promise<Agent[]>;
@@ -45,37 +56,86 @@ export interface IStorage {
   updateLayoutAverageRating(layoutId: number): Promise<void>;
 
   // Workspace Snapshot operations
-  getWorkspaceSnapshots(userId: number, projectId?: number): Promise<WorkspaceSnapshot[]>;
-  getWorkspaceSnapshotById(id: number, userId: number): Promise<WorkspaceSnapshot | undefined>;
+  getWorkspaceSnapshots(userId: string, projectId?: number): Promise<WorkspaceSnapshot[]>;
+  getWorkspaceSnapshotById(id: number, userId: string): Promise<WorkspaceSnapshot | undefined>;
   createWorkspaceSnapshot(snapshot: InsertWorkspaceSnapshot): Promise<WorkspaceSnapshot>;
-  deleteWorkspaceSnapshot(id: number, userId: number): Promise<boolean>;
-  cleanupAutoSaveSnapshots(userId: number, projectId: number, keepCount: number): Promise<void>;
+  deleteWorkspaceSnapshot(id: number, userId: string): Promise<boolean>;
+  cleanupAutoSaveSnapshots(userId: string, projectId: number, keepCount: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  // User operations (Replit Auth compatible)
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    if (!username) return undefined;
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        usageQuota: userData.usageQuota || {
+          aiCalls: 1000,
+          storageGB: 1,
+          workspaceHours: 50,
+          projectCount: 5,
+          resetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
     return user;
   }
 
-  // Project operations
-  async getProjects(userId: number): Promise<Project[]> {
-    return await db.select().from(projects).orderBy(desc(projects.createdAt));
+  async updateUserUsage(userId: string, usage: Partial<User['usageQuota']>): Promise<void> {
+    const user = await this.getUser(userId);
+    if (!user) return;
+
+    const currentUsage = user.usageQuota || {
+      aiCalls: 0,
+      storageGB: 0,
+      workspaceHours: 0,
+      projectCount: 0,
+      resetDate: new Date().toISOString()
+    };
+
+    await db
+      .update(users)
+      .set({
+        usageQuota: { ...currentUsage, ...usage },
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
   }
 
-  async getProject(id: number): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+  // Project operations with user authentication
+  async getProjects(userId: string): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.createdAt));
+  }
+
+  async getProject(id: number, userId?: string): Promise<Project | undefined> {
+    const conditions = [eq(projects.id, id)];
+    if (userId) {
+      conditions.push(eq(projects.userId, userId));
+    }
+    const [project] = await db.select().from(projects).where(and(...conditions));
     return project;
   }
 
@@ -236,18 +296,75 @@ export class DatabaseStorage implements IStorage {
       .where(eq(workspaceLayouts.id, layoutId));
   }
 
-  // Workspace Snapshot operations
-  async getWorkspaceSnapshots(userId: number, projectId?: number): Promise<WorkspaceSnapshot[]> {
-    let query = db.select().from(workspaceSnapshots).where(eq(workspaceSnapshots.userId, userId));
-    
-    if (projectId) {
-      query = query.where(and(eq(workspaceSnapshots.userId, userId), eq(workspaceSnapshots.projectId, projectId)));
-    }
-    
-    return await query.orderBy(desc(workspaceSnapshots.createdAt));
+  // Usage tracking operations
+  async createUsageStats(usage: InsertUsageStats): Promise<UsageStats> {
+    const [stats] = await db.insert(usageStats).values(usage).returning();
+    return stats;
   }
 
-  async getWorkspaceSnapshotById(id: number, userId: number): Promise<WorkspaceSnapshot | undefined> {
+  async getUserUsageStats(userId: string, period?: string): Promise<UsageStats[]> {
+    const conditions = [eq(usageStats.userId, userId)];
+    if (period) {
+      conditions.push(eq(usageStats.period, period));
+    }
+    
+    return await db
+      .select()
+      .from(usageStats)
+      .where(and(...conditions))
+      .orderBy(desc(usageStats.periodStart));
+  }
+
+  async trackAiUsage(usage: InsertAiUsage): Promise<AiUsage> {
+    const [aiUsageRecord] = await db.insert(aiUsage).values(usage).returning();
+    return aiUsageRecord;
+  }
+
+  // File attachment operations
+  async createFileAttachment(attachment: InsertFileAttachment): Promise<FileAttachment> {
+    const [file] = await db.insert(fileAttachments).values(attachment).returning();
+    return file;
+  }
+
+  async getFileAttachments(userId: string, projectId?: number): Promise<FileAttachment[]> {
+    const conditions = [eq(fileAttachments.userId, userId)];
+    if (projectId) {
+      conditions.push(eq(fileAttachments.projectId, projectId));
+    }
+    
+    return await db
+      .select()
+      .from(fileAttachments)
+      .where(and(...conditions))
+      .orderBy(desc(fileAttachments.createdAt));
+  }
+
+  async deleteFileAttachment(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(fileAttachments)
+      .where(and(
+        eq(fileAttachments.id, id),
+        eq(fileAttachments.userId, userId)
+      ));
+    
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Workspace Snapshot operations (updated for string userId)
+  async getWorkspaceSnapshots(userId: string, projectId?: number): Promise<WorkspaceSnapshot[]> {
+    const conditions = [eq(workspaceSnapshots.userId, userId)];
+    if (projectId) {
+      conditions.push(eq(workspaceSnapshots.projectId, projectId));
+    }
+    
+    return await db
+      .select()
+      .from(workspaceSnapshots)
+      .where(and(...conditions))
+      .orderBy(desc(workspaceSnapshots.createdAt));
+  }
+
+  async getWorkspaceSnapshotById(id: number, userId: string): Promise<WorkspaceSnapshot | undefined> {
     const [snapshot] = await db
       .select()
       .from(workspaceSnapshots)

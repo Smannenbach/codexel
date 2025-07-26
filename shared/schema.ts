@@ -4,26 +4,43 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
+  id: varchar("id").primaryKey(), // Changed to varchar for Replit Auth compatibility
+  username: text("username"),
+  email: text("email").unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status").default("free"), // free, pro, enterprise
+  usageQuota: jsonb("usage_quota").$type<{
+    aiCalls: number;
+    storageGB: number;
+    workspaceHours: number;
+    projectCount: number;
+    resetDate: string;
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description"),
   status: text("status").notNull().default("planning"), // planning, development, testing, completed
   progress: integer("progress").notNull().default(0),
   totalCost: real("total_cost").default(0),
   config: jsonb("config"), // Project configuration and settings
+  attachments: jsonb("attachments").$type<Array<{
+    id: string;
+    filename: string;
+    size: number;
+    type: string;
+    url: string;
+    uploadedAt: string;
+  }>>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -83,23 +100,93 @@ export const checklistItems = pgTable("checklist_items", {
 
 export const aiUsage = pgTable("ai_usage", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id),
   projectId: integer("project_id"),
   model: text("model").notNull(),
+  feature: text("feature").notNull(), // chat, code_generation, file_analysis, etc.
   inputTokens: integer("input_tokens").notNull().default(0),
   outputTokens: integer("output_tokens").notNull().default(0),
   cost: integer("cost_cents").notNull().default(0), // Cost in cents
+  sessionId: text("session_id"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Add usage tracking table
+export const usageStats = pgTable("usage_stats", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  period: text("period").notNull(), // daily, weekly, monthly
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  metrics: jsonb("metrics").$type<{
+    aiCalls: number;
+    tokensUsed: number;
+    workspaceMinutes: number;
+    projectsCreated: number;
+    filesUploaded: number;
+    storageUsedMB: number;
+    featuresUsed: string[];
+    topModels: Array<{ model: string; count: number }>;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userPeriodIdx: index("usage_stats_user_period_idx").on(table.userId, table.period, table.periodStart),
+}));
+
+// Add file attachments table
+export const fileAttachments = pgTable("file_attachments", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").references(() => projects.id),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(), // in bytes
+  url: text("url").notNull(),
+  isPublic: boolean("is_public").default(false),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userIdx: index("file_attachments_user_idx").on(table.userId),
+  projectIdx: index("file_attachments_project_idx").on(table.projectId),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
   username: true,
   email: true,
-  password: true,
   firstName: true,
   lastName: true,
   profileImageUrl: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
+  subscriptionStatus: true,
+  usageQuota: true,
+});
+
+export const upsertUserSchema = createInsertSchema(users).pick({
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profileImageUrl: true,
+});
+
+export const insertUsageStatsSchema = createInsertSchema(usageStats).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFileAttachmentSchema = createInsertSchema(fileAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiUsageSchema = createInsertSchema(aiUsage).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
@@ -137,18 +224,12 @@ export const insertChecklistItemSchema = createInsertSchema(checklistItems).pick
   order: true,
 });
 
-export const insertAiUsageSchema = createInsertSchema(aiUsage).pick({
-  userId: true,
-  projectId: true,
-  model: true,
-  inputTokens: true,
-  outputTokens: true,
-  cost: true,
-});
+
 
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
@@ -164,6 +245,12 @@ export type InsertChecklistItem = z.infer<typeof insertChecklistItemSchema>;
 
 export type AiUsage = typeof aiUsage.$inferSelect;
 export type InsertAiUsage = z.infer<typeof insertAiUsageSchema>;
+
+export type UsageStats = typeof usageStats.$inferSelect;
+export type InsertUsageStats = z.infer<typeof insertUsageStatsSchema>;
+
+export type FileAttachment = typeof fileAttachments.$inferSelect;
+export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
 
 // Deployments table
 export const deployments = pgTable("deployments", {

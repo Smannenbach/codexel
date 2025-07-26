@@ -43,6 +43,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply rate limiting middleware globally
   app.use(rateLimitLogger);
   app.use('/api', rateLimiters.general);
+
+  // Production-ready authentication and usage tracking routes
+  const productionAuthRoutes = (await import('./routes/production-auth')).default;
+  const fileAttachmentsRoutes = (await import('./routes/file-attachments')).default;
+  
+  app.use('/api/auth', productionAuthRoutes);
+  app.use('/api/files', fileAttachmentsRoutes);
   
   // Apply performance monitoring middleware
   const { performanceMiddleware } = await import('./services/performance-optimizer');
