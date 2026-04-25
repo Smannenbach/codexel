@@ -372,48 +372,60 @@ function generateDeepStructure(a: DomainAnalysis): any[] {
   const brand = a.brandName;
   const state = a.state || 'Nationwide';
   const niche = a.niche;
+  const nicheLabel = niche === 'dscr' ? 'DSCR investor' : 'mortgage';
 
   const corePages = [
-    { slug: 'home', title: 'Home', content: `Welcome to ${brand}.` },
-    { slug: 'about', title: 'About Us', content: `Who is ${brand}?` },
-    { slug: 'contact', title: 'Contact Us', content: `Get in touch with us.` },
-    { slug: 'privacy', title: 'Privacy Policy', content: `Your privacy matters.` },
-    { slug: 'terms', title: 'Terms of Service', content: `Our legal terms.` },
+    { slug: 'home', title: 'Home', content: `Welcome to ${brand}, the leading provider of ${nicheLabel} loans in ${state}.` },
+    { slug: 'about', title: 'About Us', content: `${brand} is dedicated to simplifying the ${nicheLabel} process for investors and homeowners across ${state}.` },
+    { slug: 'contact', title: 'Contact Us', content: `Get in touch with the ${brand} team for a personalized ${nicheLabel} quote today.` },
+    { slug: 'privacy', title: 'Privacy Policy', content: `At ${brand}, we take your privacy seriously. Read our full policy here.` },
+    { slug: 'terms', title: 'Terms of Service', content: `By using the ${brand} website, you agree to the following terms and conditions.` },
   ];
 
-  // Topic pages (20-30)
-  const topicPages = [
-    'How it Works', 'Loan Programs', 'Interest Rates', 'Calculator',
-    'FHA vs Conventional', 'VA Loan Benefits', 'Credit Score Requirements',
-    'Self-Employed Loans', 'Investment Property Strategy', 'Closing Costs Guide',
-    'Refinance Break-even Analysis', 'Cash-out vs Rate-and-term', 'HELOC Guide',
-  ].map(t => ({
-    slug: t.toLowerCase().replace(/\s+/g, '-'),
-    title: t,
-    content: `${t} details for ${brand}.`
+  // Topic pages (20-30) with varied descriptions
+  const topics = [
+    { t: 'How it Works', d: `Discover our streamlined 3-step process for securing ${nicheLabel} funding.` },
+    { t: 'Loan Programs', d: `Explore our range of flexible ${nicheLabel} programs tailored for ${state} investors.` },
+    { t: 'Interest Rates', d: `See today's competitive ${nicheLabel} rates and how they impact your ROI.` },
+    { t: 'DSCR Calculator', d: `Use our professional tool to calculate your Debt Service Coverage Ratio instantly.` },
+    { t: 'Investment Strategy', d: `Learn how to leverage ${nicheLabel} loans to scale your real estate portfolio.` },
+    { t: 'Closing Costs Guide', d: `A transparent breakdown of what to expect when closing your ${nicheLabel} loan.` },
+    { t: 'Refinance Analysis', d: `Is it the right time to refinance? Use our break-even analysis to find out.` },
+  ];
+
+  const topicPages = topics.map(item => ({
+    slug: item.t.toLowerCase().replace(/\s+/g, '-'),
+    title: item.t,
+    content: item.d
   }));
 
   // Geo pages (50-80 cities in the state)
   const cities = a.stateCode === 'TX' 
-    ? ['Houston', 'Dallas', 'Austin', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Laredo', 'Lubbock', 'Garland']
-    : ['Phoenix', 'Miami', 'Chicago', 'Atlanta', 'Denver', 'Seattle', 'Nashville', 'Las Vegas', 'Portland', 'Boston', 'Philadelphia', 'Charlotte'];
+    ? ['Houston', 'Dallas', 'Austin', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Laredo', 'Lubbock', 'Garland', 'Irving', 'Amarillo', 'Grand Prairie', 'McKinney']
+    : ['Phoenix', 'Miami', 'Chicago', 'Atlanta', 'Denver', 'Seattle', 'Nashville', 'Las Vegas', 'Portland', 'Boston', 'Philadelphia', 'Charlotte', 'Orlando', 'Tampa', 'San Diego', 'San Francisco'];
   
   const geoPages = cities.map(city => ({
     slug: `${city.toLowerCase()}-${niche}-loans`,
     title: `${city} ${niche.toUpperCase()} Loans`,
-    content: `Local mortgage expertise in ${city}, ${state}.`
+    content: `Expert ${niche.toUpperCase()} lending solutions for property investors in ${city}, ${state}. Secure fast funding with ${brand}.`
   }));
 
   // Combine to reach 100+ stubs
   let allPages = [...corePages, ...topicPages, ...geoPages];
   
   // Fill the rest with long-tail variations
+  const longTail = [
+    'Fixed Rate vs ARM', 'No-Doc Loan Advantages', 'Scaling with DSCR', 
+    'Multifamily Investing', 'Airbnb Financing Tips', 'Bridge Loan Scenarios'
+  ];
+
   while (allPages.length < 110) {
     const i = allPages.length;
+    const topic = longTail[i % longTail.length];
     allPages.push({
-      slug: `mortgage-article-${i}`,
-      title: `Expert Mortgage Tip #${i}`,
-      content: `Article content for ${brand}.`
+      slug: `${topic.toLowerCase().replace(/\s+/g, '-')}-${i}`,
+      title: `${topic} Guide`,
+      content: `Deep dive into ${topic} and how it applies to your ${state} real estate strategy.`
     });
   }
 

@@ -33,6 +33,7 @@ import TemplatePreview from "@/pages/TemplatePreview";
 import SiteFactory from "@/pages/SiteFactory";
 import DeploymentPipeline from "@/pages/DeploymentPipeline";
 import SEOBlitz from "@/pages/SEOBlitz";
+import IDEPage from "@/pages/IDE";
 
 function Router() {
   try {
@@ -62,6 +63,7 @@ function Router() {
         <Route path="/deploy" component={DeploymentPipeline} />
         <Route path="/seo-blitz" component={SEOBlitz} />
         <Route path="/preview/:templateId" component={TemplatePreview} />
+        <Route path="/ide/:siteId" component={IDEPage} />
         <Route component={NotFound} />
       </Switch>
     );

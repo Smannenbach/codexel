@@ -418,7 +418,15 @@ export default function SiteFactory() {
                         </span>
                       )}
                       {r.siteId && (
-                        <span className="text-gray-400">#{r.siteId}</span>
+                        <div className="flex gap-2">
+                          <span className="text-gray-400">#{r.siteId}</span>
+                          <button 
+                            onClick={() => navigate(`/ide/${r.siteId}`)}
+                            className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-bold border transition-colors flex items-center gap-1"
+                          >
+                            <FileCode className="w-3 h-3" /> EDIT CODE
+                          </button>
+                        </div>
                       )}
                       {r.error && r.error !== 'already_exists' && (
                         <span className="text-red-600">{r.error}</span>

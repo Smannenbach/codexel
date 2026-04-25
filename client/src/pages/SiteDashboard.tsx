@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Globe, TrendingUp, Users, Plus, ExternalLink, Trash2, Settings } from 'lucide-react';
+import { Globe, TrendingUp, Users, Plus, ExternalLink, Trash2, Settings, FileCode } from 'lucide-react';
 
 interface Site {
   id: number;
@@ -217,6 +218,15 @@ export default function SiteDashboard() {
                                 <ExternalLink className="w-3.5 h-3.5" />
                               </Button>
                             )}
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-7 w-7 p-0 text-blue-400 hover:text-white"
+                              title="Edit Code"
+                              onClick={() => navigate(`/ide/${site.id}`)}
+                            >
+                              <FileCode className="w-3.5 h-3.5" />
+                            </Button>
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-gray-400 hover:text-white">
                               <Settings className="w-3.5 h-3.5" />
                             </Button>
