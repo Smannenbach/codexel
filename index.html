@@ -12,26 +12,57 @@
             <div class="logo">
                 <span class="logo-bold">Codexel</span>.ai
             </div>
+            <div class="controls">
+                <button id="run-btn" class="control-btn run" title="Run Application">▶ Run</button>
+                <button id="stop-btn" class="control-btn stop" title="Stop Application" disabled>◼ Stop</button>
+                <button id="restart-btn" class="control-btn restart" title="Restart Application" disabled>↻ Restart</button>
+                <div class="divider"></div>
+                <button id="export-btn" class="control-btn secondary" title="Export Project (JSON)">⤓ Export</button>
+                <button id="import-btn" class="control-btn secondary" title="Import Project (JSON)">⤒ Import</button>
+                <div class="divider"></div>
+                <button id="help-btn" class="control-btn secondary" title="Help & Shortcuts">?</button>
+                <button id="diag-btn" class="control-btn secondary" title="System Diagnostics">⚙</button>
+            </div>
             <div class="status-indicator">
-                <span id="status-text">Booting...</span>
+                <span id="status-badge" class="badge idle">IDLE</span>
+                <span id="status-text">Ready</span>
             </div>
         </header>
         <main class="ide-main">
             <aside class="sidebar">
-                <div class="sidebar-header">FILES</div>
-                <ul class="file-list">
-                    <li class="file-item active" data-file="index.js">index.js</li>
-                    <li class="file-item" data-file="package.json">package.json</li>
+                <div class="sidebar-header">
+                    <span>FILES</span>
+                    <div class="file-actions">
+                        <button id="new-file-btn" class="icon-btn" title="New File">+</button>
+                    </div>
+                </div>
+                <ul id="file-list" class="file-list">
+                    <!-- Files will be injected dynamically -->
                 </ul>
             </aside>
             <section class="editor-pane">
-                <div class="pane-header">index.js</div>
+                <div class="pane-header">
+                    <span id="active-file-name">index.js</span>
+                    <div class="editor-actions">
+                        <button id="toggle-wrap-btn" class="icon-btn" title="Toggle Word Wrap">⤿</button>
+                        <button id="toggle-minimap-btn" class="icon-btn" title="Toggle Minimap">🗺</button>
+                    </div>
+                </div>
                 <div id="editor-container"></div>
             </section>
             <section class="output-pane">
                 <div class="preview-section">
-                    <div class="pane-header">PREVIEW</div>
+                    <div class="pane-header">
+                        <span>PREVIEW</span>
+                        <div class="preview-actions">
+                            <button id="open-external-btn" class="icon-btn" title="Open in New Tab" disabled>↗</button>
+                        </div>
+                    </div>
                     <div id="preview-container">
+                        <div id="preview-overlay" class="overlay hidden">
+                            <div class="loader"></div>
+                            <span>Starting server...</span>
+                        </div>
                         <iframe src="loading.html" id="preview-iframe"></iframe>
                     </div>
                 </div>
