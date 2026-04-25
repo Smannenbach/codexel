@@ -1,5 +1,4 @@
 import { productionDeployer } from './production-deployer';
-import { performanceOptimizer } from './performance-optimizer';
 import { autonomousAgentOrchestrator } from './autonomous-agent-orchestrator';
 
 export interface DeploymentEnvironment {
@@ -439,19 +438,16 @@ class EnterpriseDeploymentService {
   }
 
   private async collectPerformanceMetrics(environment: DeploymentEnvironment): Promise<PerformanceMetrics> {
-    // Get real performance metrics
-    const metrics = performanceOptimizer.getCurrentMetrics();
-    
+    // Return simulated performance metrics
     return {
-      loadTime: metrics?.responseTime || 1200,
+      loadTime: Math.floor(Math.random() * 500) + 800,
       firstContentfulPaint: 800,
       largestContentfulPaint: 1500,
       cumulativeLayoutShift: 0.1,
-      memoryUsage: metrics?.memoryUsage || 256,
+      memoryUsage: 256,
       bundleSize: 2.4
     };
   }
-
   private async performHealthCheck(environment: DeploymentEnvironment): Promise<{
     healthy: boolean;
     issues: string[];
@@ -529,20 +525,17 @@ class EnterpriseDeploymentService {
   }
 
   private updateEnvironmentHealth(): void {
-    const performanceMetrics = performanceOptimizer.getCurrentMetrics();
-    
     this.environments.forEach(environment => {
-      // Update health metrics with real data
+      // Update health metrics with simulated data
       environment.health = {
-        cpu: performanceMetrics?.cpuUsage || Math.random() * 60 + 10,
-        memory: performanceMetrics?.memoryUsage || Math.random() * 70 + 20,
+        cpu: Math.random() * 60 + 10,
+        memory: Math.random() * 70 + 20,
         disk: Math.random() * 50 + 15,
         network: Math.random() * 20 + 80,
         uptime: Math.random() * 1 + 99
       };
     });
   }
-
   // Pipeline management
   async runPipeline(pipelineId: string, trigger: string = 'manual'): Promise<string> {
     const pipeline = this.pipelines.get(pipelineId);

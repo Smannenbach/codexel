@@ -1,5 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, varchar, real, index } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -256,7 +256,7 @@ export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
 export const deployments = pgTable("deployments", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
   environment: varchar("environment", { length: 50 }).notNull().default('production'),
   status: varchar("status", { length: 50 }).notNull().default('pending'),
   url: varchar("url", { length: 255 }),
@@ -272,7 +272,7 @@ export type InsertDeployment = typeof deployments.$inferInsert;
 // Memory tables for hive mind functionality
 export const memories = pgTable('memories', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
+  userId: varchar('user_id').references(() => users.id),
   projectId: integer('project_id').references(() => projects.id),
   agentId: integer('agent_id').references(() => agents.id),
   type: varchar('type', { length: 50 }).notNull(),
@@ -301,7 +301,7 @@ export const hiveMindEntries = pgTable('hive_mind_entries', {
 // Queue system for preventing user interruption
 export const promptQueue = pgTable('prompt_queue', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
+  userId: varchar('user_id').references(() => users.id),
   projectId: integer('project_id').references(() => projects.id),
   prompt: text('prompt').notNull(),
   priority: integer('priority').default(0),
@@ -346,7 +346,7 @@ export type InsertBlogPost = typeof blogPosts.$inferInsert;
 // Workspace Layouts table
 export const workspaceLayouts = pgTable('workspace_layouts', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: varchar('user_id').notNull().references(() => users.id),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   businessType: varchar('business_type', { length: 100 }).notNull(),
@@ -370,7 +370,7 @@ export const workspaceLayouts = pgTable('workspace_layouts', {
 export const layoutRatings = pgTable('layout_ratings', {
   id: serial('id').primaryKey(),
   layoutId: integer('layout_id').notNull().references(() => workspaceLayouts.id, { onDelete: 'cascade' }),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: varchar('user_id').notNull().references(() => users.id),
   rating: integer('rating').notNull(), // 1-5 stars
   comment: text('comment'),
   createdAt: timestamp('created_at').defaultNow()
@@ -387,7 +387,7 @@ export type InsertLayoutRating = typeof layoutRatings.$inferInsert;
 // Workspace snapshots table for one-click save/restore
 export const workspaceSnapshots = pgTable("workspace_snapshots", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   projectId: integer("project_id").references(() => projects.id).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
@@ -409,7 +409,7 @@ export type InsertWorkspaceSnapshot = typeof workspaceSnapshots.$inferInsert;
 // Workspace analytics table
 export const workspaceAnalytics = pgTable('workspace_analytics', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: varchar('user_id').notNull().references(() => users.id),
   projectId: integer('project_id').notNull().references(() => projects.id),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   layoutConfiguration: jsonb('layout_configuration').notNull(),
@@ -439,7 +439,7 @@ export const workspaceAnalytics = pgTable('workspace_analytics', {
 // Layout recommendations table
 export const layoutRecommendations = pgTable('layout_recommendations', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: varchar('user_id').notNull().references(() => users.id),
   projectType: varchar('project_type', { length: 100 }),
   recommendedLayout: jsonb('recommended_layout').notNull(),
   recommendedPanelSizes: jsonb('recommended_panel_sizes').notNull(),
@@ -476,3 +476,119 @@ export const marketingCampaigns = pgTable("marketing_campaigns", {
 
 export type MarketingCampaign = typeof marketingCampaigns.$inferSelect;
 export type InsertMarketingCampaign = typeof marketingCampaigns.$inferInsert;
+
+// Tenants table - for multi-tenant white-label support
+export const tenants = pgTable("tenants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  ownerId: varchar("owner_id").references(() => users.id),
+  plan: text("plan").notNull().default("free"),
+  customDomain: text("custom_domain"),
+  logoUrl: text("logo_url"),
+  brandColors: jsonb("brand_colors").$type<{ primary: string; secondary: string; accent: string }>(),
+  settings: jsonb("settings").$type<Record<string, unknown>>().default({}),
+  apiKey: text("api_key").unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sites table - registry for all deployed domains/sites
+export const sites = pgTable("sites", {
+  id: serial("id").primaryKey(),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  userId: varchar("user_id").references(() => users.id),
+  domain: text("domain").notNull().unique(),
+  subdomain: text("subdomain"),
+  name: text("name").notNull(),
+  templateId: text("template_id"),
+  category: text("category").notNull().default("mortgage"),
+  status: text("status").notNull().default("draft"),
+  seoScore: integer("seo_score").default(0),
+  leadCount: integer("lead_count").default(0),
+  monthlyVisitors: integer("monthly_visitors").default(0),
+  config: jsonb("config").$type<{
+    title: string;
+    description: string;
+    keywords: string[];
+    primaryColor: string;
+    secondaryColor: string;
+    phone: string;
+    email: string;
+    address: string;
+    licenseNumber: string;
+    nmlsNumber: string;
+    statesLicensed: string[];
+    loanTypes: string[];
+    customContent: Record<string, string>;
+  }>(),
+  metaData: jsonb("meta_data").$type<Record<string, unknown>>(),
+  deployedUrl: text("deployed_url"),
+  lastDeployedAt: timestamp("last_deployed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Site leads - track leads from each deployed site
+export const siteLeads = pgTable("site_leads", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").references(() => sites.id),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  loanAmount: integer("loan_amount"),
+  propertyValue: integer("property_value"),
+  state: text("state"),
+  loanType: text("loan_type"),
+  message: text("message"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  status: text("status").notNull().default("new"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SEO tracking per site
+export const siteSeoMetrics = pgTable("site_seo_metrics", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").references(() => sites.id),
+  keyword: text("keyword").notNull(),
+  currentRank: integer("current_rank"),
+  previousRank: integer("previous_rank"),
+  searchVolume: integer("search_volume"),
+  difficulty: integer("difficulty"),
+  url: text("url"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+// Password credentials (separate from users for OAuth compatibility)
+export const userCredentials = pgTable("user_credentials", {
+  userId: varchar("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// JWT refresh tokens
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSiteSchema = createInsertSchema(sites).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSiteLeadSchema = createInsertSchema(siteLeads).omit({ id: true, createdAt: true, updatedAt: true });
+
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = typeof tenants.$inferInsert;
+export type Site = typeof sites.$inferSelect;
+export type InsertSite = typeof sites.$inferInsert;
+export type SiteLead = typeof siteLeads.$inferSelect;
+export type InsertSiteLead = typeof siteLeads.$inferInsert;

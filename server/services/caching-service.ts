@@ -180,10 +180,10 @@ class CachingService {
   private generateCacheKey(req: any): string {
     const { method, originalUrl, query, headers } = req;
     
-    // Include relevant headers that might affect response
+    // C6: Use userId so different users never share cache entries
     const relevantHeaders = {
       'accept': headers.accept,
-      'authorization': headers.authorization ? 'auth-present' : 'no-auth'
+      'userId': req.user?.id || 'anonymous',
     };
 
     return `${method}:${originalUrl}:${JSON.stringify(query)}:${JSON.stringify(relevantHeaders)}`;

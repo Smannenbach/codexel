@@ -206,20 +206,34 @@ class IntelligentAIOrchestrator {
     return "Alternative option";
   }
 
-  // Enhanced AI request with automatic model selection
+  // Original method name used in some places
   async intelligentRequest(
     prompt: string, 
     requirements: Partial<TaskRequirements> = {},
     options: any = {}
   ) {
+    return this.orchestrateRequest({
+      message: prompt,
+      ...requirements,
+      ...options
+    } as any);
+  }
+
+  // Enhanced AI request with automatic model selection
+  async orchestrateRequest(params: {
+    message: string;
+    taskType?: string;
+    complexity?: string;
+    context?: any;
+    options?: any;
+  }) {
     const taskReq: TaskRequirements = {
-      type: 'general',
-      complexity: 'medium',
+      type: (params.taskType as any) || 'general',
+      complexity: (params.complexity as any) || 'medium',
       budget: 'medium',
       speed: 'balanced',
-      contextSize: prompt.length,
+      contextSize: params.message.length,
       multimodalNeeded: false,
-      ...requirements
     };
 
     const recommendation = await this.selectOptimalModel(taskReq);
@@ -229,10 +243,10 @@ class IntelligentAIOrchestrator {
     
     try {
       // Use the selected model through our existing AI service
-      const result = await aiService.generateResponse(prompt, {
+      const result = await aiService.generateResponse(params.message, {
         model: recommendation.model,
         provider: recommendation.provider,
-        ...options
+        ...params.options
       });
 
       // Update success stats
@@ -240,6 +254,7 @@ class IntelligentAIOrchestrator {
 
       return {
         response: result,
+        content: result, // For compatibility
         modelUsed: recommendation.model,
         provider: recommendation.provider,
         reasoning: recommendation.reasoning,
@@ -247,7 +262,7 @@ class IntelligentAIOrchestrator {
         alternatives: recommendation.alternatives
       };
 
-    } catch (error) {
+    } catch (error: any) {
       // Update failure stats
       this.updateModelStats(recommendation.provider, recommendation.model, false, Date.now() - startTime);
       
@@ -255,21 +270,22 @@ class IntelligentAIOrchestrator {
       if (recommendation.alternatives.length > 0) {
         const fallback = recommendation.alternatives[0];
         try {
-          const result = await aiService.generateResponse(prompt, {
+          const result = await aiService.generateResponse(params.message, {
             model: fallback.model,
             provider: fallback.provider,
-            ...options
+            ...params.options
           });
 
           return {
             response: result,
+            content: result, // For compatibility
             modelUsed: fallback.model,
             provider: fallback.provider,
             reasoning: `Fallback to ${fallback.reason}`,
             estimatedCost: recommendation.estimatedCost,
             alternatives: recommendation.alternatives.slice(1)
           };
-        } catch (fallbackError) {
+        } catch (fallbackError: any) {
           throw new Error(`Primary model failed: ${error.message}, Fallback failed: ${fallbackError.message}`);
         }
       }

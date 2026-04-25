@@ -41,8 +41,9 @@ class AIService {
     systemPrompt: string, 
     userMessage: string, 
     model: string,
-    userId?: number,
-    projectId?: number
+    userId?: string,
+    projectId?: number,
+    feature: string = 'chat'
   ): Promise<{ content: string; inputTokens: number; outputTokens: number; cost: number }> {
     let response: string;
     let inputTokens = 0;
@@ -110,6 +111,7 @@ class AIService {
           userId,
           projectId,
           model,
+          feature,
           inputTokens,
           outputTokens,
           cost
@@ -140,7 +142,7 @@ class AIService {
     requirements: string,
     model: string,
     language: string = 'typescript',
-    userId?: number,
+    userId?: string,
     projectId?: number
   ): Promise<{ code: string; explanation: string; cost: number }> {
     const systemPrompt = `You are an expert ${language} developer. Generate clean, well-commented code based on the requirements. 
@@ -157,7 +159,8 @@ class AIService {
       requirements,
       model,
       userId,
-      projectId
+      projectId,
+      'code_generation'
     );
 
     // Parse the response
@@ -172,10 +175,22 @@ class AIService {
     };
   }
 
+  async generateResponse(prompt: string, options: any = {}): Promise<string> {
+    const result = await this.sendMessage(
+      options.systemPrompt || "You are a helpful AI assistant.",
+      prompt,
+      options.model || "gpt-4o",
+      options.userId,
+      options.projectId,
+      options.feature || 'chat'
+    );
+    return result.content;
+  }
+
   async analyzeCode(
     code: string,
     model: string,
-    userId?: number,
+    userId?: string,
     projectId?: number
   ): Promise<{ analysis: string; suggestions: string[]; cost: number }> {
     const systemPrompt = `You are an expert code reviewer. Analyze the provided code for:
@@ -199,7 +214,8 @@ class AIService {
       code,
       model,
       userId,
-      projectId
+      projectId,
+      'code_analysis'
     );
 
     // Parse the response

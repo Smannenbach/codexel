@@ -2,14 +2,15 @@ import { Router } from 'express';
 import { createAnalyticsTracker } from '../services/analytics';
 import { db } from '../db';
 import { workspaceAnalytics, layoutRecommendations } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { isAuthenticated } from '../auth';
 
 const router = Router();
 const analyticsTrackers = new Map<string, ReturnType<typeof createAnalyticsTracker>>();
 
 // Get or create analytics tracker for a user/project
-const getTracker = (userId: number, projectId: number) => {
+const getTracker = (userId: string, projectId: number) => {
   const key = `${userId}_${projectId}`;
   if (!analyticsTrackers.has(key)) {
     analyticsTrackers.set(key, createAnalyticsTracker(userId, projectId));
@@ -18,16 +19,16 @@ const getTracker = (userId: number, projectId: number) => {
 };
 
 // Track workspace events
-router.post('/api/analytics/track', async (req, res) => {
+router.post('/api/analytics/track', isAuthenticated, async (req, res) => {
   try {
     const trackSchema = z.object({
-      userId: z.number(),
       projectId: z.number(),
       event: z.enum(['layout_change', 'message_sent', 'panel_focus']),
       data: z.record(z.any()),
     });
 
-    const { userId, projectId, event, data } = trackSchema.parse(req.body);
+    const { projectId, event, data } = trackSchema.parse(req.body);
+    const userId = req.user!.id; 
     const tracker = getTracker(userId, projectId);
 
     switch (event) {
@@ -54,10 +55,10 @@ router.post('/api/analytics/track', async (req, res) => {
 });
 
 // Get productivity stats
-router.get('/api/analytics/stats/:projectId', async (req, res) => {
+router.get('/api/analytics/stats/:projectId', isAuthenticated, async (req, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
-    const userId = 1; // TODO: Get from authenticated user
+    const userId = req.user!.id;
     
     const tracker = getTracker(userId, projectId);
     const stats = await tracker.getProductivityStats();
@@ -70,9 +71,9 @@ router.get('/api/analytics/stats/:projectId', async (req, res) => {
 });
 
 // Get layout recommendations
-router.get('/api/analytics/recommendations/:userId', async (req, res) => {
+router.get('/api/analytics/recommendations', isAuthenticated, async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = req.user!.id;
     
     const recommendations = await db.select()
       .from(layoutRecommendations)
@@ -88,9 +89,10 @@ router.get('/api/analytics/recommendations/:userId', async (req, res) => {
 });
 
 // Generate new recommendations
-router.post('/api/analytics/recommendations/generate', async (req, res) => {
+router.post('/api/analytics/recommendations/generate', isAuthenticated, async (req, res) => {
   try {
-    const { userId, projectId } = req.body;
+    const { projectId } = z.object({ projectId: z.number() }).parse(req.body);
+    const userId = req.user!.id;
     const tracker = getTracker(userId, projectId);
     
     const recommendations = await tracker.generateRecommendations();
@@ -102,13 +104,14 @@ router.post('/api/analytics/recommendations/generate', async (req, res) => {
 });
 
 // Accept a recommendation
-router.post('/api/analytics/recommendations/:id/accept', async (req, res) => {
+router.post('/api/analytics/recommendations/:id/accept', isAuthenticated, async (req, res) => {
   try {
     const recommendationId = parseInt(req.params.id);
+    const userId = req.user!.id;
     
     await db.update(layoutRecommendations)
       .set({ accepted: true })
-      .where(eq(layoutRecommendations.id, recommendationId));
+      .where(and(eq(layoutRecommendations.id, recommendationId), eq(layoutRecommendations.userId, userId)));
     
     res.json({ success: true });
   } catch (error) {
@@ -118,9 +121,9 @@ router.post('/api/analytics/recommendations/:id/accept', async (req, res) => {
 });
 
 // Get analytics summary
-router.get('/api/analytics/summary/:userId', async (req, res) => {
+router.get('/api/analytics/summary', isAuthenticated, async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = req.user!.id;
     
     const analytics = await db.select()
       .from(workspaceAnalytics)

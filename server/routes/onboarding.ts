@@ -6,11 +6,11 @@ interface OnboardingProgress {
   step: number;
   completed: boolean;
   profile: {
-    name: string;
-    role: string;
-    experience: string;
-    goals: string[];
-    industry: string;
+    name?: string;
+    role?: string;
+    experience?: string;
+    goals?: string[];
+    industry?: string;
   };
   completedAt?: string;
 }
@@ -23,10 +23,14 @@ class OnboardingService {
       userId,
       step: 0,
       completed: false,
-      profile: { name: '', role: '', experience: '', goals: [], industry: '' }
+      profile: {}
     };
 
-    this.progress.set(userId, { ...existing, ...data });
+    this.progress.set(userId, { 
+      ...existing, 
+      ...data,
+      profile: { ...existing.profile, ...data.profile }
+    });
   }
 
   async getProgress(userId: string): Promise<OnboardingProgress | null> {

@@ -82,7 +82,7 @@ export class AgentOrchestrator {
     );
 
     try {
-      return JSON.parse(response);
+      return JSON.parse(response.content);
     } catch {
       return {
         summary: userMessage,
@@ -196,11 +196,13 @@ export class AgentOrchestrator {
     const systemPrompt = this.getAgentSystemPrompt(agent.role);
     const fullPrompt = context ? `${context}\n\nNew task: ${task}` : task;
     
-    return await aiService.sendMessage(
+    const result = await aiService.sendMessage(
       systemPrompt,
       fullPrompt,
       agent.model as any
     );
+
+    return result.content;
   }
 
   private getAgentSystemPrompt(role: string): string {
@@ -241,7 +243,7 @@ export class AgentOrchestrator {
   }
 
   private async getAgentByRole(projectId: number, role: string): Promise<Agent | null> {
-    const projectData = await projectService.getProjectWithAgents(projectId);
+    const projectData = await projectService.getProjectWithAgents(projectId) as any;
     
     if (!projectData || !projectData.projectAgents) return null;
     

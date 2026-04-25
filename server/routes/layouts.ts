@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { storage } from '../storage';
 import { z } from 'zod';
+import { isAuthenticated } from '../auth';
 
 const router = Router();
 
@@ -41,9 +42,9 @@ router.get('/api/layouts', async (req, res) => {
 });
 
 // Get user's layouts
-router.get('/api/layouts/my-layouts', async (req, res) => {
+router.get('/api/layouts/my-layouts', isAuthenticated, async (req, res) => {
   try {
-    const userId = 1; // TODO: Get from authenticated user
+    const userId = req.user!.id; // C10
     const layouts = await storage.getWorkspaceLayouts({ userId });
     res.json(layouts);
   } catch (error) {
@@ -64,13 +65,13 @@ const createLayoutSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-router.post('/api/layouts', async (req, res) => {
+router.post('/api/layouts', isAuthenticated, async (req, res) => {
   try {
     const data = createLayoutSchema.parse(req.body);
     
     const layout = await storage.createWorkspaceLayout({
       ...data,
-      userId: 1, // TODO: Get from authenticated user
+      userId: req.user!.id, // C10
     });
     
     res.json(layout);
@@ -114,11 +115,11 @@ const rateLayoutSchema = z.object({
   comment: z.string().optional(),
 });
 
-router.post('/api/layouts/:id/rate', async (req, res) => {
+router.post('/api/layouts/:id/rate', isAuthenticated, async (req, res) => {
   try {
     const layoutId = parseInt(req.params.id);
     const data = rateLayoutSchema.parse(req.body);
-    const userId = 1; // TODO: Get from authenticated user
+    const userId = req.user!.id; // C10
     
     // Check if user already rated this layout
     const existingRating = await storage.getUserLayoutRating(layoutId, userId);

@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { isAuthenticated } from "./auth";
 import { createServer, type Server } from "http";
 import { registerVoiceRoutes } from './routes/voice';
 import aiRoutes from './routes/ai';
@@ -10,17 +11,15 @@ import multer from "multer";
 import { storage } from "./storage";
 import { voiceCloneService } from "./services/voiceCloning";
 import { aiService } from "./services/ai-service";
-import { AgentOrchestrator } from "./services/ai-orchestrator";
+import { AgentOrchestrator } from "./services/agent-orchestrator";
 import type { InsertMessage, InsertProject, InsertAgent } from "@shared/schema";
 import { aiContentGenerator } from "./services/ai-content-generator";
-import { performanceOptimizer } from "./services/performance-optimizer";
 import { cachingService, SpecializedCaches } from "./services/caching-service";
 import { cdnOptimizer, cdnMiddleware } from "./services/cdn-optimizer";
 import { databaseOptimizer } from "./services/database-optimizer";
 import { productionDeployer } from "./services/production-deployer";
 import { intelligentAIOrchestrator } from "./services/intelligent-ai-orchestrator";
 import { codeIntelligenceService } from "./services/code-intelligence";
-import { memoryOptimizer } from "./services/memory-optimizer";
 import { realTimeCollaboration } from "./services/real-time-collaboration";
 import { mobileAppGenerator } from "./services/mobile-app-generator";
 import { enterpriseAnalytics } from "./services/enterprise-analytics";
@@ -44,16 +43,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(rateLimitLogger);
   app.use('/api', rateLimiters.general);
 
+  // Phase 1: JWT auth, sites, calculators, and SEO routes
+  const authRoutes = (await import('./routes/auth')).default;
+  const siteRoutes = (await import('./routes/sites')).default;
+  const { calculatorRoutes } = await import('./routes/calculator');
+  const { seoRoutes } = await import('./routes/seo');
+  const { seoDynamicRoutes } = await import('./routes/seo-dynamic');
+  app.use('/api/auth', authRoutes);
+  app.use('/api/sites', siteRoutes);
+  app.use('/api/calculator', calculatorRoutes);
+  app.use('/api/seo', seoRoutes);
+  // Phase 2: Site Factory Engine
+  const { factoryRoutes } = await import('./routes/factory');
+  app.use('/api/factory', factoryRoutes);
+  // Phase 3: Deployment Pipeline
+  const { deployPipelineRoutes } = await import('./routes/deploy-pipeline');
+  app.use('/api/deploy', deployPipelineRoutes);
+  // Phase 4: SEO Blitz & AI Search Optimization
+  const { seoBlitzRoutes } = await import('./routes/seo-blitz');
+  app.use('/api/seo-blitz', seoBlitzRoutes);
+  app.use('/', seoDynamicRoutes);
+
   // Production-ready authentication and usage tracking routes
   const productionAuthRoutes = (await import('./routes/production-auth')).default;
   const fileAttachmentsRoutes = (await import('./routes/file-attachments')).default;
   
   app.use('/api/auth', productionAuthRoutes);
   app.use('/api/files', fileAttachmentsRoutes);
-  
-  // Apply performance monitoring middleware
-  const { performanceMiddleware } = await import('./services/performance-optimizer');
-  app.use(performanceMiddleware());
   
   // Apply CDN optimization middleware (skip in development to avoid Vite conflicts)
   if (process.env.NODE_ENV !== 'development') {
@@ -76,29 +92,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register error logging routes
   app.use(errorRoutes);
-  
-  // Register deployment routes
-  app.post('/api/deployments', async (req, res) => {
-    try {
-      const { projectId, environment, config } = req.body;
-      const deployment = {
-        id: Date.now(),
-        projectId,
-        userId: 1,
-        environment,
-        status: 'deployed',
-        url: environment === 'production' 
-          ? `https://${config?.domain || 'app'}.codexel.ai`
-          : `https://staging-${projectId}.codexel.ai`,
-        deployedAt: new Date().toISOString(),
-        logs: 'Deployment completed successfully'
-      };
-      res.json(deployment);
-    } catch (error) {
-      console.error('Create deployment error:', error);
-      res.status(500).json({ error: 'Failed to create deployment' });
-    }
-  });
   
   // Preview route - serves generated app preview
   app.get('/preview', (req, res) => {
@@ -215,26 +208,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Enhanced AI response based on context
       const enhancedContent = content + fileContext;
       
-      // Call AI API with enhanced context
-      const aiApiResponse = await fetch(`http://localhost:5000/api/ai/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: enhancedContent,
-          model: model,
-          context: {
-            projectType: 'AI Development Platform',
-            hasAttachments: files && files.length > 0,
-            attachmentTypes: files?.map(f => f.mimetype) || []
-          }
-        })
-      });
-      
+      // C4: Call aiService directly — no HTTP self-loops
       let aiResponse = "";
-      if (aiApiResponse.ok) {
-        const data = await aiApiResponse.json();
-        aiResponse = data.response;
-      } else {
+      try {
+        const result = await aiService.sendMessage('You are a helpful AI assistant.', enhancedContent, model);
+        aiResponse = result.content;
+      } catch {
         aiResponse = "I understand you've uploaded files. I can help analyze and work with these attachments to build your application. What would you like me to do with these files?";
       }
       
@@ -364,32 +343,16 @@ What would you like me to add or modify next?`;
           aiResponse = "I'm ready to build your website! Could you provide more details about what type of website you need? (e.g., business website, portfolio, landing page)";
         }
       } else {
-        // Call AI API with selected model
+        // C4: Call aiService directly — no HTTP self-loops
         try {
-          const aiApiResponse = await fetch(`http://localhost:5000/api/ai/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: content,
-              model: model,
-              context: {
-                projectType: 'AI Development Platform',
-                industry: 'Technology'
-              }
-            })
-          });
-          
-          if (aiApiResponse.ok) {
-            const data = await aiApiResponse.json();
-            aiResponse = data.response;
-          } else {
-            // Fallback to orchestrator for complex requests
-            const orchestrator = new AgentOrchestrator();
-            aiResponse = await orchestrator.processMessage(actualProjectId, content);
+        const result = await aiService.sendMessage('You are a helpful AI assistant.', content, model);
+        aiResponse = result.content;
+        if (!aiResponse) {
+        const orchestrator = new AgentOrchestrator();
+          aiResponse = await orchestrator.processMessage(actualProjectId, content);
           }
         } catch (error) {
-          console.error('AI API error:', error);
-          // Fallback response
+        console.error('AI service error:', error);
           aiResponse = `I understand you want to build something amazing. Let me help you with that. Could you provide more details about your specific requirements?`;
         }
       }
@@ -416,7 +379,7 @@ What would you like me to add or modify next?`;
   app.post("/api/projects", async (req, res) => {
     try {
       const project = await storage.createProject({
-        userId: 1,
+        userId: req.user?.id ?? 'anonymous',
         name: req.body.name || "New Project",
         description: req.body.description || "",
         status: 'planning',
@@ -469,9 +432,9 @@ What would you like me to add or modify next?`;
   });
 
   // Get all projects
-  app.get("/api/projects", async (req, res) => {
+  app.get("/api/projects", isAuthenticated, async (req, res) => {
     try {
-      const projects = await storage.getProjects(1);
+      const projects = await storage.getProjects(req.user!.id);
       res.json(projects);
     } catch (error) {
       console.error("Get projects error:", error);
@@ -706,14 +669,9 @@ What would you like me to add or modify next?`;
   const analyticsRoutes = await import('./routes/analytics').then(m => m.default);
   app.use(analyticsRoutes);
 
-  // Register deployment routes
-  const { registerDeploymentRoutes } = await import('./routes/deployment');
-  registerDeploymentRoutes(app);
-
   // Register monitoring routes
   const { registerMonitoringRoutes } = await import('./routes/monitoring');
   registerMonitoringRoutes(app);
-
   // Register load testing routes
   const { registerLoadTestingRoutes } = await import('./routes/loadTesting');
   registerLoadTestingRoutes(app);
@@ -726,10 +684,6 @@ What would you like me to add or modify next?`;
   const smartTemplatesRoutes = await import('./routes/smart-templates');
   app.use('/api/smart-templates', smartTemplatesRoutes.default);
 
-  // Register live deployment routes
-  const { registerLiveDeploymentRoutes } = await import('./routes/liveDeployment');
-  registerLiveDeploymentRoutes(app);
-
   // Register feedback routes
   const { registerFeedbackRoutes } = await import('./routes/feedback');
   registerFeedbackRoutes(app);
@@ -741,131 +695,6 @@ What would you like me to add or modify next?`;
   // Register snapshot routes
   const { registerSnapshotRoutes } = await import('./routes/snapshots');
   registerSnapshotRoutes(app);
-
-  // Performance Monitoring API endpoints
-  app.get('/api/performance/metrics', (req, res) => {
-    try {
-      const metrics = performanceOptimizer.getMetrics();
-      res.json({ metrics });
-    } catch (error) {
-      console.error('Performance metrics error:', error);
-      res.status(500).json({ error: 'Failed to get performance metrics' });
-    }
-  });
-
-  app.get('/api/performance/summary', (req, res) => {
-    try {
-      const metrics = performanceOptimizer.getMetrics();
-      const summary = {
-        overallHealth: 'Good',
-        responseTime: '125ms',
-        memoryUsage: '342MB',
-        cpuUsage: '45%',
-        activeConnections: 142,
-        cacheHitRatio: 0.89
-      };
-      res.json(summary);
-    } catch (error) {
-      console.error('Performance summary error:', error);
-      res.status(500).json({ error: 'Failed to get performance summary' });
-    }
-  });
-
-  app.get('/api/performance/recommendations', (req, res) => {
-    try {
-      const recommendations = [
-        'Enable database connection pooling',
-        'Implement Redis caching for frequently accessed data',
-        'Optimize large image assets with WebP format',
-        'Consider CDN integration for static assets'
-      ];
-      res.json({ recommendations });
-    } catch (error) {
-      console.error('Performance recommendations error:', error);
-      res.status(500).json({ error: 'Failed to get performance recommendations' });
-    }
-  });
-
-  app.get('/api/performance/health', (req, res) => {
-    try {
-      const health = {
-        status: 'healthy',
-        uptime: '12h 34m',
-        memoryUsage: 67,
-        cpuUsage: 45,
-        diskUsage: 23,
-        activeConnections: 142,
-        responseTime: 125
-      };
-      res.json(health);
-    } catch (error) {
-      console.error('System health error:', error);
-      res.status(500).json({ error: 'Failed to get system health' });
-    }
-  });
-
-  app.post('/api/performance/optimize', (req, res) => {
-    try {
-      const optimizations = [
-        'Cleared unused cache entries',
-        'Optimized database queries',
-        'Compressed static assets'
-      ];
-      res.json({ 
-        success: true, 
-        optimizations,
-        message: `Applied ${optimizations.length} optimizations`
-      });
-    } catch (error) {
-      console.error('Auto-optimize error:', error);
-      res.status(500).json({ error: 'Failed to apply optimizations' });
-    }
-  });
-
-  // Memory Optimization API endpoints
-  app.get('/api/memory/metrics', (req, res) => {
-    try {
-      const metrics = memoryOptimizer.getCurrentMemoryMetrics();
-      res.json({ success: true, metrics });
-    } catch (error) {
-      console.error('Memory metrics error:', error);
-      res.status(500).json({ error: 'Failed to get memory metrics' });
-    }
-  });
-
-  app.get('/api/memory/history', (req, res) => {
-    try {
-      const history = memoryOptimizer.getMemoryHistory();
-      res.json({ success: true, history });
-    } catch (error) {
-      console.error('Memory history error:', error);
-      res.status(500).json({ error: 'Failed to get memory history' });
-    }
-  });
-
-  app.get('/api/memory/recommendations', (req, res) => {
-    try {
-      const recommendations = memoryOptimizer.getRecommendations();
-      res.json({ success: true, recommendations });
-    } catch (error) {
-      console.error('Memory recommendations error:', error);
-      res.status(500).json({ error: 'Failed to get memory recommendations' });
-    }
-  });
-
-  app.post('/api/memory/optimize', (req, res) => {
-    try {
-      const optimizations = memoryOptimizer.optimizeNow();
-      res.json({ 
-        success: true, 
-        optimizations,
-        message: `Applied ${optimizations.length} memory optimizations`
-      });
-    } catch (error) {
-      console.error('Memory optimize error:', error);
-      res.status(500).json({ error: 'Failed to optimize memory' });
-    }
-  });
 
   // Caching Service API endpoints
   app.get('/api/cache/stats', (req, res) => {

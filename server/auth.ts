@@ -1,37 +1,52 @@
 import type { RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
 
-// Simple authentication middleware for production features
-export const isAuthenticated: RequestHandler = (req: any, res, next) => {
-  // For now, simulate authentication - in production this would check actual session/JWT
-  // This is a placeholder that always authenticates for development purposes
-  
-  // Mock user for development
-  if (!req.user) {
-    req.user = {
-      claims: {
-        sub: 'dev-user-123',
-        email: 'developer@codexel.ai',
-        first_name: 'Developer',
-        last_name: 'User'
-      }
-    };
+export interface AuthUser {
+  id: string;
+  email: string;
+  tenantId?: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+      rawBody?: string;
+    }
   }
-  
-  // In production, this would check:
-  // - Session validation
-  // - JWT token verification
-  // - User existence in database
-  // - Access permissions
-  
-  if (!req.user?.claims?.sub) {
+}
+
+export const isAuthenticated: RequestHandler = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
-  next();
+
+  const token = authHeader.slice(7);
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('FATAL: JWT_SECRET env var not set');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  try {
+    const payload = jwt.verify(token, secret) as jwt.JwtPayload;
+    if (!payload.sub) {
+      return res.status(401).json({ error: 'Invalid token payload' });
+    }
+    req.user = {
+      id: payload.sub as string,
+      email: payload.email as string,
+      tenantId: payload.tenantId as string | undefined,
+    };
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 };
 
-// For production deployment, replace with actual Replit Auth
 export const setupAuth = async (app: any) => {
-  console.log('⚠️  Using development authentication - replace with Replit Auth for production');
-  // In production, this would setup Replit Auth middleware
+  if (!process.env.JWT_SECRET) {
+    console.warn('⚠️  JWT_SECRET not set — all protected routes will return 500');
+  }
 };

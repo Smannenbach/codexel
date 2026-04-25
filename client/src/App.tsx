@@ -28,6 +28,11 @@ import SimpleLanding from "@/pages/SimpleLanding";
 import SimpleTest from "@/pages/simple-test";
 import Diagnostic from "@/pages/diagnostic";
 import SimpleMarketing from "@/pages/simple-marketing";
+import SiteDashboard from "@/pages/SiteDashboard";
+import TemplatePreview from "@/pages/TemplatePreview";
+import SiteFactory from "@/pages/SiteFactory";
+import DeploymentPipeline from "@/pages/DeploymentPipeline";
+import SEOBlitz from "@/pages/SEOBlitz";
 
 function Router() {
   try {
@@ -52,7 +57,11 @@ function Router() {
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/disclosures" component={Disclosures} />
-        <Route path="/preview" component={() => <div className="min-h-screen bg-gray-100 flex items-center justify-center"><h1>Preview Panel</h1></div>} />
+        <Route path="/sites" component={SiteDashboard} />
+        <Route path="/factory" component={SiteFactory} />
+        <Route path="/deploy" component={DeploymentPipeline} />
+        <Route path="/seo-blitz" component={SEOBlitz} />
+        <Route path="/preview/:templateId" component={TemplatePreview} />
         <Route component={NotFound} />
       </Switch>
     );

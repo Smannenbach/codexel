@@ -5,13 +5,13 @@ import type { WorkspaceAnalytic, InsertWorkspaceAnalytic, LayoutRecommendation, 
 
 export class WorkspaceAnalyticsService {
   private sessionId: string;
-  private userId: number;
+  private userId: string;
   private projectId: number;
   private startTime: number;
   private currentAnalytics: Partial<InsertWorkspaceAnalytic>;
   private updateInterval: NodeJS.Timer | null = null;
 
-  constructor(userId: number, projectId: number) {
+  constructor(userId: string, projectId: number) {
     this.userId = userId;
     this.projectId = projectId;
     this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -51,20 +51,23 @@ export class WorkspaceAnalyticsService {
     this.currentAnalytics.messagesSent = (this.currentAnalytics.messagesSent || 0) + 1;
     this.currentAnalytics.aiInteractions = (this.currentAnalytics.aiInteractions || 0) + 1;
     
-    const modelUsage = this.currentAnalytics.preferredModelUsage || {};
+    const modelUsage = (this.currentAnalytics.preferredModelUsage || {}) as Record<string, number>;
     modelUsage[model] = (modelUsage[model] || 0) + 1;
     this.currentAnalytics.preferredModelUsage = modelUsage;
   }
 
   async trackPanelFocus(panelName: string, duration: number) {
-    const focusTime = this.currentAnalytics.focusTime || {};
+    const focusTime = (this.currentAnalytics.focusTime || {}) as Record<string, number>;
     focusTime[panelName] = (focusTime[panelName] || 0) + duration;
     this.currentAnalytics.focusTime = focusTime;
     
     // Update most used panel
-    const maxTime = Math.max(...Object.values(focusTime));
-    const mostUsed = Object.entries(focusTime).find(([_, time]) => time === maxTime)?.[0];
-    this.currentAnalytics.mostUsedPanel = mostUsed;
+    const values = Object.values(focusTime);
+    if (values.length > 0) {
+      const maxTime = Math.max(...values);
+      const mostUsed = Object.entries(focusTime).find(([_, time]) => time === maxTime)?.[0];
+      this.currentAnalytics.mostUsedPanel = mostUsed;
+    }
   }
 
   async saveAnalytics() {
@@ -124,7 +127,7 @@ export class WorkspaceAnalyticsService {
         // Generate recommendations based on patterns
         if (productivityMetrics.chatHeavy) {
           recommendations.push({
-            userId: this.userId,
+            userId: String(this.userId),
             projectType: 'chat-heavy',
             recommendedLayout: { type: 'chat-focused' },
             recommendedPanelSizes: [15, 55, 30],
@@ -136,7 +139,7 @@ export class WorkspaceAnalyticsService {
         
         if (productivityMetrics.previewFocused) {
           recommendations.push({
-            userId: this.userId,
+            userId: String(this.userId),
             projectType: 'preview-focused',
             recommendedLayout: { type: 'preview-focused' },
             recommendedPanelSizes: [20, 35, 45],
@@ -148,7 +151,7 @@ export class WorkspaceAnalyticsService {
         
         if (productivityMetrics.balancedUsage) {
           recommendations.push({
-            userId: this.userId,
+            userId: String(this.userId),
             projectType: 'balanced',
             recommendedLayout: { type: 'balanced' },
             recommendedPanelSizes: avgPanelSizes,
@@ -255,6 +258,6 @@ export class WorkspaceAnalyticsService {
   }
 }
 
-export const createAnalyticsTracker = (userId: number, projectId: number) => {
+export const createAnalyticsTracker = (userId: string, projectId: number) => {
   return new WorkspaceAnalyticsService(userId, projectId);
 };

@@ -44,7 +44,7 @@ export interface IStorage {
   associateAgentWithProject(projectId: number, agentId: number): Promise<void>;
 
   // Workspace Layout operations
-  getWorkspaceLayouts(filters?: { category?: string; isPublic?: boolean; userId?: number }): Promise<WorkspaceLayout[]>;
+  getWorkspaceLayouts(filters?: { category?: string; isPublic?: boolean; userId?: string | number }): Promise<WorkspaceLayout[]>;
   getWorkspaceLayout(id: number): Promise<WorkspaceLayout | undefined>;
   createWorkspaceLayout(layout: InsertWorkspaceLayout): Promise<WorkspaceLayout>;
   updateWorkspaceLayout(id: number, data: Partial<WorkspaceLayout>): Promise<void>;
@@ -52,7 +52,7 @@ export interface IStorage {
 
   // Layout Rating operations
   createLayoutRating(rating: InsertLayoutRating): Promise<LayoutRating>;
-  getUserLayoutRating(layoutId: number, userId: number): Promise<LayoutRating | undefined>;
+  getUserLayoutRating(layoutId: number, userId: string | number): Promise<LayoutRating | undefined>;
   updateLayoutAverageRating(layoutId: number): Promise<void>;
 
   // Workspace Snapshot operations
@@ -217,7 +217,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Workspace Layout operations
-  async getWorkspaceLayouts(filters?: { category?: string; isPublic?: boolean; userId?: number }): Promise<WorkspaceLayout[]> {
+  async getWorkspaceLayouts(filters?: { category?: string; isPublic?: boolean; userId?: string | number }): Promise<WorkspaceLayout[]> {
     let query = db.select().from(workspaceLayouts);
     
     if (filters) {
@@ -272,7 +272,7 @@ export class DatabaseStorage implements IStorage {
     return rating;
   }
 
-  async getUserLayoutRating(layoutId: number, userId: number): Promise<LayoutRating | undefined> {
+  async getUserLayoutRating(layoutId: number, userId: string | number): Promise<LayoutRating | undefined> {
     const [rating] = await db.select()
       .from(layoutRatings)
       .where(and(

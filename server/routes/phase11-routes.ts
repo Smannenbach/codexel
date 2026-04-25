@@ -1,7 +1,7 @@
 // Phase 11: Advanced Integration & Ecosystem Routes
 import type { Express } from 'express';
+import crypto from 'crypto';
 import { githubIntegration } from '../services/github-integration';
-import { performanceOptimizer } from '../services/performance-optimizer';
 
 export function registerPhase11Routes(app: Express) {
   // GitHub Integration Routes
@@ -214,9 +214,24 @@ export function registerPhase11Routes(app: Express) {
   // GitHub webhook endpoint
   app.post('/api/github/webhook', async (req, res) => {
     try {
+      // C7: Verify HMAC signature before processing any webhook payload
+      const secret = process.env.GITHUB_WEBHOOK_SECRET;
+      const sig = req.headers['x-hub-signature-256'] as string;
+
+      if (!secret || !sig) {
+        return res.status(401).json({ error: 'Webhook secret not configured or signature missing' });
+      }
+
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+
+      if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+        return res.status(401).json({ error: 'Invalid webhook signature' });
+      }
+
       const event = req.headers['x-github-event'];
       const payload = req.body;
-      
+
       console.log(`GitHub webhook received: ${event}`, payload);
       
       // Handle different webhook events
@@ -244,63 +259,7 @@ export function registerPhase11Routes(app: Express) {
     }
   });
 
-  // Performance Optimization Routes
-  
-  // Get current performance metrics
-  app.get('/api/performance/metrics', async (req, res) => {
-    try {
-      const currentMetrics = performanceOptimizer.getCurrentMetrics();
-      const allMetrics = performanceOptimizer.getMetrics();
-      const optimizationHistory = performanceOptimizer.getOptimizationHistory();
-      const cacheStats = performanceOptimizer.getCacheStats();
-      
-      res.json({
-        current: currentMetrics,
-        history: allMetrics.slice(-20), // Last 20 metrics
-        optimizations: optimizationHistory.slice(0, 10), // Last 10 optimizations
-        cache: cacheStats
-      });
-    } catch (error) {
-      console.error('Failed to get performance metrics:', error);
-      res.status(500).json({ error: 'Failed to retrieve performance metrics' });
-    }
-  });
-
-  // Force performance optimization
-  app.post('/api/performance/optimize', async (req, res) => {
-    try {
-      const { ruleId } = req.body;
-      
-      await performanceOptimizer.forceOptimization(ruleId);
-      
-      res.json({ 
-        success: true, 
-        message: ruleId ? `Optimization rule '${ruleId}' executed` : 'All applicable optimizations executed'
-      });
-    } catch (error) {
-      console.error('Failed to force optimization:', error);
-      res.status(500).json({ error: error.message || 'Failed to execute optimization' });
-    }
-  });
-
-  // Clear performance cache
-  app.delete('/api/performance/cache', async (req, res) => {
-    try {
-      const { pattern } = req.query;
-      
-      performanceOptimizer.clearCache(pattern as string);
-      
-      res.json({ 
-        success: true, 
-        message: pattern ? `Cache cleared for pattern: ${pattern}` : 'All cache cleared'
-      });
-    } catch (error) {
-      console.error('Failed to clear cache:', error);
-      res.status(500).json({ error: 'Failed to clear cache' });
-    }
-  });
-
-  // API Marketplace Routes (Future expansion)
+  // Enterprise Cloud Management Routes
   
   // Get available API integrations
   app.get('/api/marketplace/integrations', async (req, res) => {

@@ -13,14 +13,14 @@ interface DeploymentStep {
 
 export class DeploymentService {
   private steps: DeploymentStep[] = [
-    { id: 'validate', title: 'Validate Application' },
-    { id: 'build', title: 'Build Application' },
-    { id: 'deploy', title: 'Deploy to Cloud' },
-    { id: 'configure', title: 'Configure Domain' },
-    { id: 'finalize', title: 'Finalize Deployment' }
+    { id: 'validate', title: 'Validate Application', status: 'pending' },
+    { id: 'build', title: 'Build Application', status: 'pending' },
+    { id: 'deploy', title: 'Deploy to Cloud', status: 'pending' },
+    { id: 'dns', title: 'Configure DNS', status: 'pending' },
+    { id: 'verify', title: 'Verify Deployment', status: 'pending' }
   ];
 
-  async deployProject(projectId: number, userId: number): Promise<string> {
+  async deployProject(projectId: number, userId: string): Promise<string> {
     try {
       // Get project details
       const [project] = await db

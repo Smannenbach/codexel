@@ -481,7 +481,7 @@ class SelfHealingCodeService extends EventEmitter {
         type: 'code-quality',
         severity: 'low',
         description: 'Complex function with high cyclomatic complexity',
-        file: 'server/services/ai-orchestrator.ts',
+        file: 'server/services/intelligent-ai-orchestrator.ts',
         line: 234,
         suggested_fix: 'Break down function into smaller, more focused functions',
         confidence: 0.83,
