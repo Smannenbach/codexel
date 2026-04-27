@@ -30,6 +30,7 @@ import Diagnostic from "@/pages/diagnostic";
 import SimpleMarketing from "@/pages/simple-marketing";
 import SiteDashboard from "@/pages/SiteDashboard";
 import TemplatePreview from "@/pages/TemplatePreview";
+import { PublicSiteHome, PublicSiteSlugRoute } from "@/pages/PublicSitePage";
 import SiteFactory from "@/pages/SiteFactory";
 import DeploymentPipeline from "@/pages/DeploymentPipeline";
 import SEOBlitz from "@/pages/SEOBlitz";
@@ -64,6 +65,7 @@ function Router() {
         <Route path="/seo-blitz" component={SEOBlitz} />
         <Route path="/preview/:templateId" component={TemplatePreview} />
         <Route path="/ide/:siteId" component={IDEPage} />
+        <Route path="/:slug" component={PublicSiteSlugRoute} />
         <Route component={NotFound} />
       </Switch>
     );

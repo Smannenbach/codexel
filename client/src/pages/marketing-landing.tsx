@@ -68,6 +68,66 @@ const stats = [
   { number: "< 60s", label: "Deployment Time" }
 ];
 
+const commandCenterStats = [
+  { icon: Globe, value: "242", label: "Fleet Domains", detail: "Wave-ready inventory" },
+  { icon: Home, value: "38", label: "Live Sites", detail: "Already serving traffic" },
+  { icon: TrendingUp, value: "91", label: "Average SEO Score", detail: "Across active properties" },
+  { icon: Clock, value: "6", label: "Active Automation Jobs", detail: "Running right now" }
+];
+
+const quickActions = [
+  {
+    icon: Layers,
+    title: "Site Factory",
+    description: "Analyze domains, preview positioning, and generate branded site builds.",
+    href: "/factory",
+    cta: "Open Factory"
+  },
+  {
+    icon: Home,
+    title: "Fleet Dashboard",
+    description: "Track domain health, lead flow, and launch status for every property.",
+    href: "/sites",
+    cta: "View Fleet"
+  },
+  {
+    icon: Rocket,
+    title: "Deployment Pipeline",
+    description: "Push launches, monitor rollout waves, and keep production clean.",
+    href: "/deploy",
+    cta: "Manage Deploys"
+  },
+  {
+    icon: Search,
+    title: "SEO Blitz",
+    description: "Run content expansion, indexing workflows, and SERP coverage campaigns.",
+    href: "/seo-blitz",
+    cta: "Run SEO"
+  },
+  {
+    icon: Building2,
+    title: "AI Workspace",
+    description: "Coordinate prompts, agents, and content decisions from the main studio.",
+    href: "/workspace",
+    cta: "Enter Studio"
+  }
+];
+
+const routeMap = [
+  { path: "/", label: "Public command-center homepage" },
+  { path: "/sites", label: "Fleet operations dashboard" },
+  { path: "/factory", label: "Domain analysis and build flow" },
+  { path: "/deploy", label: "Launch pipeline and monitoring" },
+  { path: "/seo-blitz", label: "SEO acceleration workflows" }
+];
+
+const commandQueue = [
+  "Launch 12 Arizona DSCR domains with localized page packs",
+  "Refresh rate tables and CTAs across live refinance properties",
+  "Generate 30 city pages for Florida investment loan clusters",
+  "Push index requests for newly published mortgage guides"
+];
+
 export default function MarketingLanding() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -94,12 +154,16 @@ export default function MarketingLanding() {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => scrollToSection('command-center')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Command Center</button>
             <button onClick={() => scrollToSection('features')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</button>
             <button onClick={() => scrollToSection('fleet')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Mass Deploy</button>
             <button onClick={() => scrollToSection('seo')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">SEO Engine</button>
           </div>
 
           <div className="flex items-center gap-4">
+            <Button variant="ghost" className="hidden md:inline-flex text-gray-400 hover:text-white" onClick={() => window.location.href = '/sites'}>
+              Dashboard
+            </Button>
             <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => window.location.href = '/factory'}>
               Factory
             </Button>
@@ -135,7 +199,7 @@ export default function MarketingLanding() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Don't just build a website. Build a **Digital Empire.** 
+              Don't just build a website. Build a <strong className="text-white font-black">Digital Empire.</strong>{' '}
               Codexel.ai automates mass-domain deployment with 100+ SEO-optimized pages per site.
             </p>
 
@@ -153,10 +217,10 @@ export default function MarketingLanding() {
                 size="lg" 
                 variant="outline" 
                 className="px-10 py-7 text-xl font-bold border-gray-800 hover:bg-gray-900 rounded-2xl text-gray-400 hover:text-white transition-all"
-                onClick={() => scrollToSection('features')}
+                onClick={() => window.location.href = '/sites'}
               >
-                <Play className="w-5 h-5 mr-3 fill-current" />
-                See How It Works
+                <Play className="w-5 h-5 mr-3" />
+                Open Command Center
               </Button>
             </div>
 
@@ -172,6 +236,137 @@ export default function MarketingLanding() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Command Center Section */}
+      <section id="command-center" className="px-6 pb-32">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+            <Card className="border border-gray-800 bg-gray-900/40 rounded-[32px] overflow-hidden">
+              <CardHeader className="pb-4">
+                <Badge className="w-fit bg-white/5 text-blue-400 border-blue-500/20 uppercase tracking-[0.2em] text-[10px] font-black">
+                  Homepage + dashboard bridge
+                </Badge>
+                <CardTitle className="mt-6 text-3xl md:text-4xl font-black tracking-tight">
+                  Command center for the full domain fleet
+                </CardTitle>
+                <p className="text-base text-gray-400 max-w-2xl font-medium leading-relaxed">
+                  The root experience now points directly into the operational surfaces that matter:
+                  create, manage, deploy, and optimize every Codexel property without hunting through routes.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {quickActions.map((action) => (
+                    <button
+                      key={action.title}
+                      type="button"
+                      onClick={() => window.location.href = action.href}
+                      className="group rounded-3xl border border-gray-800 bg-gray-950/70 p-5 text-left transition-all hover:border-blue-500/40 hover:bg-gray-950"
+                    >
+                      <div className="mb-4 flex items-center justify-between gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
+                          <action.icon className="h-6 w-6" />
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-gray-600 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black tracking-tight text-white">{action.title}</h3>
+                        <p className="text-sm font-medium leading-relaxed text-gray-400">{action.description}</p>
+                        <div className="pt-2 text-[11px] font-black uppercase tracking-[0.2em] text-blue-500">
+                          {action.cta}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid gap-4 rounded-3xl border border-gray-800 bg-gray-950/60 p-6 md:grid-cols-[0.95fr_1.05fr]">
+                  <div className="space-y-4">
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Live command queue</div>
+                    {commandQueue.map((item, index) => (
+                      <div key={item} className="flex items-start gap-3 rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+                        <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-[11px] font-black text-white">
+                          {index + 1}
+                        </div>
+                        <p className="text-sm font-medium leading-relaxed text-gray-300">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Route map</div>
+                    <div className="space-y-3">
+                      {routeMap.map((route) => (
+                        <div key={route.path} className="flex items-center justify-between gap-4 rounded-2xl border border-gray-800 bg-gray-900/40 px-4 py-3">
+                          <div>
+                            <div className="text-sm font-black text-white">{route.path}</div>
+                            <div className="text-xs font-medium text-gray-400">{route.label}</div>
+                          </div>
+                          <Badge className="bg-white/5 text-gray-300 border-gray-700">
+                            Active
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {commandCenterStats.map((stat) => (
+                  <Card key={stat.label} className="border border-gray-800 bg-gray-900/40 rounded-3xl">
+                    <CardContent className="p-6">
+                      <div className="mb-6 flex items-center justify-between">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
+                          <stat.icon className="h-6 w-6" />
+                        </div>
+                        <Badge className="bg-white/5 text-gray-300 border-gray-700">
+                          Live
+                        </Badge>
+                      </div>
+                      <div className="text-4xl font-black tracking-tight text-white">{stat.value}</div>
+                      <div className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-blue-500">{stat.label}</div>
+                      <p className="mt-3 text-sm font-medium text-gray-400">{stat.detail}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card className="border border-gray-800 bg-gradient-to-br from-blue-600/10 via-gray-900/70 to-gray-950 rounded-[32px]">
+                <CardContent className="p-8 space-y-6">
+                  <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 uppercase tracking-[0.2em] text-[10px] font-black">
+                    Portfolio momentum
+                  </Badge>
+                  <div className="space-y-3">
+                    <h3 className="text-3xl font-black tracking-tight text-white">
+                      Turn the homepage into the front door for launch operations
+                    </h3>
+                    <p className="text-sm font-medium leading-relaxed text-gray-400">
+                      Public messaging still sells the vision, but the page now surfaces the exact flows needed to manage domain creation,
+                      deployment, indexing, and optimization across the fleet.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { icon: Star, label: "Unique branding by domain cluster" },
+                      { icon: Shield, label: "Launch-safe routing into operations" },
+                      { icon: Brain, label: "AI-assisted command workflows" },
+                      { icon: Bot, label: "Always-on automation coverage" }
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-gray-800 bg-gray-950/50 px-4 py-3">
+                        <item.icon className="h-5 w-5 text-blue-400" />
+                        <span className="text-sm font-bold text-gray-200">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
@@ -232,8 +427,8 @@ export default function MarketingLanding() {
                 242 DOMAINS.
               </h2>
               <p className="text-xl text-gray-400 leading-relaxed font-medium">
-                Our proprietary **Global AI Broadcast** system lets you push 
-                updates to your entire fleet simultaneously. Update rates, 
+                Our proprietary <strong className="text-white">Global AI Broadcast</strong> system lets you push
+                updates to your entire fleet simultaneously. Update rates,
                 swap CTAs, or add new pages across every domain in seconds.
               </p>
               
@@ -290,7 +485,7 @@ export default function MarketingLanding() {
                     ))}
                   </div>
                   <Button className="w-full bg-blue-600 h-12 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-900/40">
-                    EXECTUE ACROSS 242 SITES
+                    EXECUTE ACROSS 242 SITES
                   </Button>
                 </div>
               </Card>
@@ -311,7 +506,7 @@ export default function MarketingLanding() {
             <span className="text-blue-500">FULLY AUTOMATED.</span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-20 font-medium">
-            Most AI builders create "thin" content. Codexel creates **authoritative networks.** 
+            Most AI builders create "thin" content. Codexel creates <strong className="text-white">authoritative networks.</strong>{' '}
             Every site features deep topical hubs and city-level pages designed to own the Google SERP.
           </p>
 
